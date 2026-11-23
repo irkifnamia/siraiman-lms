@@ -56,7 +56,7 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
-        <p className="text-center text-[11px] text-slate-400 mt-6">Semester 2 · 2026/2027</p>
+        <p className="text-center text-[11px] text-slate-400 mt-6">Semester 2 · 2026/2027 · <a href="/privacy" className="underline">Privacy</a></p>
       </div>
     </div>
   );

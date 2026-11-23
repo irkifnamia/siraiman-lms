@@ -5,6 +5,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const s = await verifySession(req.cookies.get(COOKIE)?.value);
 
+  if (pathname === "/privacy") return NextResponse.next();
   if (pathname.startsWith("/login")) {
     if (s) return NextResponse.redirect(new URL(s.role === "admin" ? "/admin" : "/", req.url));
     return NextResponse.next();
