@@ -3,13 +3,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import {
-  Home, ClipboardList, CalendarRange, Award, Menu, Users, Megaphone, CheckSquare,
+  Home, ClipboardList, CalendarRange, Award, Menu, Users, Megaphone, BarChart3,
   BookOpen, Settings, Table2, FolderOpen, User, LogOut, GraduationCap,
 } from "lucide-react";
 
 import { ADMIN_NAV, STUDENT_NAV, type Icon, type Item } from "./nav";
 
-const ICONS = { Home, ClipboardList, CalendarRange, Award, Menu, Users, Megaphone, CheckSquare, BookOpen, Settings, Table2, FolderOpen, User };
+const ICONS = { Home, ClipboardList, CalendarRange, Award, Menu, Users, Megaphone, BarChart3, BookOpen, Settings, Table2, FolderOpen, User };
 
 export function Shell({
   role, name, sub, children, logout,

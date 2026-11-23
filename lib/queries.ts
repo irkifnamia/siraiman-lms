@@ -30,11 +30,3 @@ export async function resourcesFor(cls: string | null) {
   if (cls === null) return db()`SELECT * FROM resources ORDER BY category, created_at DESC`;
   return db()`SELECT * FROM resources WHERE class_code IS NULL OR class_code = ${cls} ORDER BY category, created_at DESC`;
 }
-
-export async function attendanceSummary(sid: number) {
-  const r = await db()`SELECT status, count(*)::int n FROM attendance WHERE student_id = ${sid} GROUP BY status`;
-  const m: Record<string, number> = { P: 0, A: 0, L: 0, E: 0 };
-  r.forEach((x) => (m[x.status] = x.n));
-  const total = m.P + m.A + m.L + m.E;
-  return { P: m.P, A: m.A, L: m.L, E: m.E, total, rate: total ? Math.round(((m.P + m.L) / total) * 100) : null };
-}

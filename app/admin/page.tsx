@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Plus, Megaphone, CheckSquare, ClipboardList, AlertCircle } from "lucide-react";
+import { ChevronRight, Plus, Megaphone, BarChart3, ClipboardList, AlertCircle } from "lucide-react";
 import { db, currentSemester } from "@/lib/db";
 import { driveConnected } from "@/lib/drive";
 import { fmtDate, relDue, titleCase } from "@/lib/format";
@@ -12,7 +12,7 @@ export default async function AdminHome() {
       (SELECT count(*) FROM students WHERE active)::int AS students,
       (SELECT count(*) FROM assignments WHERE published)::int AS tasks,
       (SELECT count(*) FROM submissions WHERE status='submitted')::int AS to_mark,
-      (SELECT round(100.0*count(*) FILTER (WHERE status IN ('P','L'))/NULLIF(count(*),0)) FROM attendance)::int AS att`,
+      (SELECT round(avg(100.0*s.mark/a.max_mark)) FROM submissions s JOIN assignments a ON a.id=s.assignment_id WHERE s.mark IS NOT NULL)::int AS avg`,
     sql`SELECT s.class_code, count(*)::int n,
           count(*) FILTER (WHERE system='SDS')::int sds, count(*) FILTER (WHERE system='SES')::int ses
         FROM students s WHERE active GROUP BY 1 ORDER BY 1`,
@@ -44,7 +44,7 @@ export default async function AdminHome() {
         <Stat label="Students" value={c.students} hint={`${classes.length} classes`} href="/admin/students" />
         <Stat label="Tasks" value={c.tasks} href="/admin/assignments" />
         <Stat label="To mark" value={c.to_mark} href="/admin/assignments" />
-        <Stat label="Attendance" value={c.att === null ? "—" : `${c.att}%`} href="/admin/attendance" />
+        <Stat label="Average" value={c.avg === null ? "—" : `${c.avg}%`} hint="all marked work" href="/admin/analysis" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-x-5">
@@ -114,7 +114,7 @@ export default async function AdminHome() {
 
       <Section title="Quick actions">
         <div className="grid grid-cols-3 gap-2.5">
-          {[["/admin/announcements", "Announce", Megaphone], ["/admin/attendance", "Attendance", CheckSquare], ["/admin/gradebook", "Gradebook", ClipboardList]].map(([h, l, I]: any) => (
+          {[["/admin/announcements", "Announce", Megaphone], ["/admin/analysis", "Analysis", BarChart3], ["/admin/gradebook", "Gradebook", ClipboardList]].map(([h, l, I]: any) => (
             <Link key={h} href={h} className="card py-3.5 flex flex-col items-center gap-1.5 text-[12px] font-medium hover:border-brand-300"><I size={18} className="text-brand-600" />{l}</Link>
           ))}
         </div>

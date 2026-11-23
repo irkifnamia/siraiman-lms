@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { ChevronRight, Pin } from "lucide-react";
 import { requireStudent } from "@/lib/auth";
-import { announcementsFor, attendanceSummary, tasksForStudent } from "@/lib/queries";
+import { announcementsFor, tasksForStudent } from "@/lib/queries";
 import { currentSemester } from "@/lib/db";
 import { fmtDate, pct, relDue } from "@/lib/format";
 import { Badge, Empty, Section, Stat, statusOf } from "@/components/ui";
 
 export default async function StudentHome() {
   const s = await requireStudent();
-  const [tasks, news, att, sem] = await Promise.all([
-    tasksForStudent(s.sid, s.cls!), announcementsFor(s.cls!, 3), attendanceSummary(s.sid), currentSemester(),
+  const [tasks, news, sem] = await Promise.all([
+    tasksForStudent(s.sid, s.cls!), announcementsFor(s.cls!, 3), currentSemester(),
   ]);
   const pending = tasks.filter((t) => !t.sub_id);
   const returned = tasks.filter((t) => t.sub_status === "returned");
@@ -28,7 +28,7 @@ export default async function StudentHome() {
       <div className="grid grid-cols-3 gap-2.5 mb-6">
         <Stat label="To do" value={pending.length} href="/tasks" />
         <Stat label="Average" value={avg === null ? "—" : `${avg}%`} href="/marks" />
-        <Stat label="Attendance" value={att.rate === null ? "—" : `${att.rate}%`} href="/marks" />
+        <Stat label="Submitted" value={`${tasks.length - pending.length}/${tasks.length}`} href="/tasks" />
       </div>
 
       <Section title="Upcoming" action={<Link href="/tasks" className="text-[12px] text-brand-600">All tasks</Link>}>

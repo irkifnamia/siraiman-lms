@@ -10,8 +10,7 @@ export default async function Students({ searchParams }: { searchParams: Promise
   const like = `%${q.toUpperCase()}%`;
   const rows = await db()`
     SELECT s.*,
-      (SELECT count(*) FROM submissions WHERE student_id=s.id)::int subs,
-      (SELECT round(100.0*count(*) FILTER (WHERE status IN ('P','L'))/NULLIF(count(*),0)) FROM attendance WHERE student_id=s.id)::int att
+      (SELECT count(*) FROM submissions WHERE student_id=s.id)::int subs
     FROM students s
     WHERE (${cls} = '' OR class_code = ${cls}) AND (${sys} = '' OR system = ${sys})
       AND (${q} = '' OR full_name LIKE ${like} OR nickname LIKE ${like} OR matric LIKE ${like})

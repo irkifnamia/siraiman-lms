@@ -133,26 +133,6 @@ export async function unreturn(fd: FormData) {
   revalidatePath(`/admin/assignments/${num(fd, "assignment_id")}`);
 }
 
-/* ---------- Attendance ---------- */
-export async function saveAttendance(_: any, fd: FormData) {
-  await requireAdmin();
-  const cls = str(fd, "class_code")!, date = str(fd, "date")!;
-  const entries = [...fd.entries()].filter(([k]) => k.startsWith("s_"));
-  const ids = entries.map(([k]) => Number(k.slice(2)));
-  const sts = entries.map(([, v]) => String(v));
-  if (ids.length)
-    await db()`INSERT INTO attendance(class_code, session_date, student_id, status)
-      SELECT ${cls}, ${date}::date, x.sid, x.st FROM unnest(${ids}::int[], ${sts}::text[]) AS x(sid, st)
-      ON CONFLICT (session_date, student_id, class_code) DO UPDATE SET status = EXCLUDED.status`;
-  revalidatePath("/admin/attendance");
-  return { ok: `Saved ${entries.length} records for ${cls} · ${date}`, at: Date.now() };
-}
-export async function clearAttendance(fd: FormData) {
-  await requireAdmin();
-  await db()`DELETE FROM attendance WHERE class_code=${str(fd, "class_code")} AND session_date=${str(fd, "date")}`;
-  revalidatePath("/admin/attendance");
-}
-
 /* ---------- Students ---------- */
 export async function saveStudent(_: any, fd: FormData) {
   await requireAdmin();

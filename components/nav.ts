@@ -1,4 +1,4 @@
-export type Icon = "Home" | "ClipboardList" | "CalendarRange" | "Award" | "Menu" | "Users" | "Megaphone" | "CheckSquare" | "BookOpen" | "Settings" | "Table2" | "FolderOpen" | "User";
+export type Icon = "Home" | "ClipboardList" | "CalendarRange" | "Award" | "Menu" | "Users" | "Megaphone" | "BarChart3" | "BookOpen" | "Settings" | "Table2" | "FolderOpen" | "User";
 export type Item = { href: string; label: string; icon: Icon };
 
 export const STUDENT_NAV: Item[] = [
@@ -15,7 +15,7 @@ export const ADMIN_NAV: Item[] = [
   { href: "/admin", label: "Dashboard", icon: "Home" },
   { href: "/admin/students", label: "Students", icon: "Users" },
   { href: "/admin/assignments", label: "Tasks", icon: "ClipboardList" },
-  { href: "/admin/attendance", label: "Attendance", icon: "CheckSquare" },
+  { href: "/admin/analysis", label: "Analysis", icon: "BarChart3" },
   { href: "/admin/gradebook", label: "Gradebook", icon: "Table2" },
   { href: "/admin/announcements", label: "Announcements", icon: "Megaphone" },
   { href: "/admin/plan", label: "Learning plan", icon: "CalendarRange" },

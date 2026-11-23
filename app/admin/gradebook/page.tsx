@@ -7,15 +7,13 @@ import { Empty, PageHeader } from "@/components/ui";
 export default async function Gradebook({ searchParams }: { searchParams: Promise<{ class?: string }> }) {
   const classes = await getClasses();
   const { class: cls = classes[0] } = await searchParams;
-  const [tasks, students, subs, att] = await Promise.all([
+  const [tasks, students, subs] = await Promise.all([
     db()`SELECT id, title, kind, max_mark FROM assignments WHERE class_code IS NULL OR class_code = ${cls} ORDER BY due_at NULLS LAST, id`,
     db()`SELECT id, nickname, matric FROM students WHERE active AND class_code = ${cls} ORDER BY nickname`,
     db()`SELECT sb.student_id, sb.assignment_id, sb.mark, sb.status, sb.file_url FROM submissions sb JOIN students s ON s.id = sb.student_id WHERE s.class_code = ${cls}`,
-    db()`SELECT student_id, round(100.0*count(*) FILTER (WHERE status IN ('P','L'))/count(*))::int r FROM attendance WHERE class_code=${cls} GROUP BY 1`,
   ]);
   const key = (s: number, a: number) => `${s}:${a}`;
   const map = new Map(subs.map((x) => [key(x.student_id, x.assignment_id), x]));
-  const attMap = new Map(att.map((x) => [x.student_id, x.r]));
   const colAvg = tasks.map((t) => {
     const ms = students.map((s) => map.get(key(s.id, t.id))?.mark).filter((m) => m !== null && m !== undefined).map(Number);
     return ms.length ? pct(ms.reduce((a, b) => a + b, 0) / ms.length, t.max_mark) : null;
@@ -43,7 +41,6 @@ export default async function Gradebook({ searchParams }: { searchParams: Promis
                   </th>
                 ))}
                 <th className="th text-center">Avg %</th>
-                <th className="th text-center">Att %</th>
               </tr>
             </thead>
             <tbody>
@@ -64,14 +61,13 @@ export default async function Gradebook({ searchParams }: { searchParams: Promis
                       );
                     })}
                     <td className={`td text-center font-semibold tabular-nums ${avg === null ? "text-slate-300" : avg >= 80 ? "text-emerald-600" : avg >= 50 ? "text-brand-700" : "text-rose-600"}`}>{avg ?? "—"}</td>
-                    <td className="td text-center tabular-nums text-slate-500">{attMap.get(s.id) ?? "—"}</td>
                   </tr>
                 );
               })}
               <tr className="bg-slate-50 font-medium">
                 <td className="td sticky left-0 bg-slate-50 text-[11.5px] text-slate-500">Class avg %</td>
                 {colAvg.map((v, i) => <td key={i} className="td text-center tabular-nums text-slate-600">{v ?? "—"}</td>)}
-                <td className="td" /><td className="td" />
+                <td className="td" />
               </tr>
             </tbody>
           </table>

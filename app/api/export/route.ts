@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { leaderboard, markedRows } from "@/lib/analysis";
+import { gradeOf, r1 } from "@/lib/stats";
 
 const esc = (v: any) => {
   const s = v === null || v === undefined ? "" : String(v);
@@ -39,6 +41,12 @@ export async function GET(req: NextRequest) {
     out = [["NO MATRIK", "NICKNAME", "NAMA", ...tasks.map((t) => `${t.title} (/${Number(t.max_mark)})`)],
       ...st.map((x) => [x.matric, x.nickname, x.full_name, ...tasks.map((t) => m.get(`${x.id}:${t.id}`) ?? "")])];
     name = `gradebook_${cls}`;
+  } else if (type === "leaderboard") {
+    const task = p.get("task") ? Number(p.get("task")) : null;
+    const lb = leaderboard(await markedRows(p.get("ret") === "1"), { cls, task });
+    out = [["RANK", "NO MATRIK", "NICKNAME", "NAMA", "KELAS", task ? "MARK" : "TASKS COUNTED", "PERCENT", "GRADE"],
+      ...lb.map((b) => [b.rank, b.matric, b.nickname, b.full_name, b.class_code, task ? `${b.mark}/${b.max}` : b.n, r1(b.score), gradeOf(b.score)])];
+    name = `leaderboard_${cls || "all"}${task ? "_task" + task : ""}`;
   } else return new NextResponse("Unknown export", { status: 400 });
 
   return new NextResponse(csv(out), {

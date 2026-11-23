@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, KeyRound, Power, Trash2 } from "lucide-react";
 import { db, getClasses } from "@/lib/db";
 import { fmtDate, pct, titleCase } from "@/lib/format";
-import { attendanceSummary } from "@/lib/queries";
 import { Badge, Card, PageHeader, Section, Stat, statusOf } from "@/components/ui";
 import { ConfirmButton } from "@/components/Confirm";
 import { StudentForm } from "@/components/StudentForm";
@@ -23,11 +22,10 @@ export default async function StudentDetail({ params }: { params: Promise<{ id: 
   }
   const s = (await db()`SELECT * FROM students WHERE id = ${Number(id)}`)[0];
   if (!s) notFound();
-  const [tasks, att] = await Promise.all([
+  const [tasks] = await Promise.all([
     db()`SELECT a.id, a.title, a.kind, a.due_at, a.max_mark, sb.status, sb.mark, sb.submitted_at
          FROM assignments a LEFT JOIN submissions sb ON sb.assignment_id=a.id AND sb.student_id=${s.id}
          WHERE a.published AND (a.class_code IS NULL OR a.class_code=${s.class_code}) ORDER BY a.due_at NULLS LAST`,
-    attendanceSummary(s.id),
   ]);
   const marked = tasks.filter((t) => t.mark !== null);
   const avg = marked.length ? Math.round(marked.reduce((a, t) => a + pct(t.mark, t.max_mark)!, 0) / marked.length) : null;
@@ -37,10 +35,9 @@ export default async function StudentDetail({ params }: { params: Promise<{ id: 
       <Link href={`/admin/students?class=${s.class_code}`} className="inline-flex items-center gap-1 text-[12.5px] text-slate-500 mb-3"><ArrowLeft size={14} /> {s.class_code}</Link>
       <PageHeader title={titleCase(s.full_name)} sub={<>{s.nickname} · {s.matric} · {s.class_code} · {s.system} {!s.active && <Badge tone="rose">inactive</Badge>}</>} />
 
-      <div className="grid grid-cols-3 gap-2.5 mb-5">
+      <div className="grid grid-cols-2 gap-2.5 mb-5">
         <Stat label="Average" value={avg === null ? "—" : `${avg}%`} hint={`${marked.length} marked`} />
         <Stat label="Submitted" value={`${tasks.filter((t) => t.status).length}/${tasks.length}`} />
-        <Stat label="Attendance" value={att.rate === null ? "—" : `${att.rate}%`} hint={`A ${att.A} · L ${att.L}`} />
       </div>
 
       <div className="grid md:grid-cols-[1fr_1fr] gap-x-5">
