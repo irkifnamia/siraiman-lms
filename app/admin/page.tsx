@@ -5,6 +5,7 @@ import { driveConnected } from "@/lib/drive";
 import { fmtDate, relDue, titleCase } from "@/lib/format";
 import { Badge, DueChip, Empty, KindIcon, Ring, Section, greeting } from "@/components/ui";
 import { adminProfile } from "@/lib/auth";
+import { QuickLinks } from "@/components/QuickLinks";
 
 export default async function AdminHome() {
   const sql = db();
@@ -29,7 +30,7 @@ export default async function AdminHome() {
     currentSemester(),
     driveConnected(),
   ]);
-  const prof = await adminProfile();
+  const [prof, links] = await Promise.all([adminProfile(), sql`SELECT id, title, url FROM resources WHERE category = 'Websites' ORDER BY id`]);
   const c = counts[0];
 
   return (
@@ -62,6 +63,8 @@ export default async function AdminHome() {
           <Link href="/admin/assignments/new" className="rounded-xl bg-white/15 hover:bg-white/20 px-3.5 h-11 inline-flex items-center gap-1.5 text-[13px] font-semibold shrink-0"><Plus size={16} /> Task</Link>
         </div>
       </section>
+
+      <QuickLinks links={links as any} />
 
       {!drive && (
         <Link href="/admin/settings" className="flex items-center gap-2.5 rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2.5 mb-4 text-[12.5px] text-amber-800">

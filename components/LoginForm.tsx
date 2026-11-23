@@ -12,9 +12,7 @@ export function LoginForm({ hasUsername }: { hasUsername: boolean }) {
     <div className="min-h-dvh grid place-items-center px-5 py-10 graph-teal">
       <div className="w-full max-w-[360px]">
         <div className="text-center text-white mb-6">
-          <div className="mx-auto size-12 rounded-2xl bg-white/15 grid place-items-center mb-3 ring-1 ring-white/20">
-            <GraduationCap size={24} />
-          </div>
+          <img src="/logo.png" alt="Sir Aiman LMS" className="mx-auto size-24 mb-3 drop-shadow-xl" />
           <h1 className="!text-white text-[24px] font-bold">Sir Aiman LMS</h1>
           <p className="text-[12.5px] text-brand-100 mt-1">Mathematics · Kedah Matriculation College</p>
         </div>

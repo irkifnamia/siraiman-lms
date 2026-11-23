@@ -3,13 +3,15 @@ import { ChevronRight, ClipboardCheck, Pin } from "lucide-react";
 import { requireStudent } from "@/lib/auth";
 import { announcementsFor, tasksForStudent } from "@/lib/queries";
 import { requestsForStudent } from "@/lib/info";
-import { currentSemester } from "@/lib/db";
+import { currentSemester, db } from "@/lib/db";
+import { QuickLinks } from "@/components/QuickLinks";
 import { fmtDate, pct, titleCase } from "@/lib/format";
 import { DueChip, Empty, KindIcon, Ring, Section, greeting } from "@/components/ui";
 
 export default async function StudentHome() {
   const s = await requireStudent();
-  const [tasks, news, sem, infos] = await Promise.all([tasksForStudent(s.sid, s.cls!), announcementsFor(s.cls!, 3), currentSemester(), requestsForStudent(s.sid, s.cls!)]);
+  const [tasks, news, sem, infos, links] = await Promise.all([tasksForStudent(s.sid, s.cls!), announcementsFor(s.cls!, 3), currentSemester(), requestsForStudent(s.sid, s.cls!),
+    db()`SELECT id, title, url FROM resources WHERE category = 'Websites' AND (class_code IS NULL OR class_code = ${s.cls}) ORDER BY id`]);
   const infoTodo = infos.filter((r) => r.open && !r.answered_at);
   const pending = tasks.filter((t) => !t.sub_id);
   const returned = tasks.filter((t) => t.sub_status === "returned");
@@ -52,6 +54,8 @@ export default async function StudentHome() {
         )}
       </section>
 
+      <QuickLinks links={links as any} />
+
       {infoTodo.length > 0 && (
         <Link href={infoTodo.length === 1 ? `/info/${infoTodo[0].id}` : "/info"} className="row card flex items-center gap-3 px-3.5 py-3 mb-5 border-marigold/60 bg-marigold/10">
           <div className="size-9 rounded-lg bg-marigold/30 text-amber-800 grid place-items-center shrink-0"><ClipboardCheck size={18} /></div>
@@ -81,7 +85,7 @@ export default async function StudentHome() {
       )}
 
       {returned.length > 0 && (
-        <Section title="Recently marked" action={<Link href="/marks" className="text-[12px] text-brand-700 font-medium">My marks</Link>}>
+        <Section title="Recently marked" action={<Link href="/marks" className="text-[12px] text-brand-700 font-medium">Performance</Link>}>
           <div className="card divide-y divide-slate-100">
             {[...returned].sort((a, b) => +new Date(b.returned_at) - +new Date(a.returned_at)).slice(0, 3).map((t) => {
               const p = pct(t.mark, t.max_mark) ?? 0;

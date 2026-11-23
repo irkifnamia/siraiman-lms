@@ -6,10 +6,10 @@ export const STUDENT_NAV: Item[] = [
   { href: "/tasks", label: "Tasks", icon: "ClipboardList" },
   { href: "/plan", label: "Plan", icon: "CalendarRange" },
   { href: "/marks", label: "Performance", icon: "Award" },
-  { href: "/info", label: "My info", icon: "ClipboardCheck" },
-  { href: "/announcements", label: "News", icon: "Megaphone" },
-  { href: "/resources", label: "Resources", icon: "FolderOpen" },
   { href: "/profile", label: "Profile", icon: "User" },
+  { href: "/info", label: "My info", icon: "ClipboardCheck" },
+  { href: "/resources", label: "Resources", icon: "FolderOpen" },
+  { href: "/announcements", label: "News", icon: "Megaphone" },
 ];
 
 export const ADMIN_NAV: Item[] = [

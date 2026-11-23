@@ -52,7 +52,7 @@ export function Shell({
       <header className="md:hidden sticky top-0 z-20 bg-paper/90 backdrop-blur border-b border-slate-200/70">
         <div className="flex items-center justify-between px-4 h-13">
           <div className="flex items-center gap-2">
-            <div className="size-7 rounded-lg bg-brand-600 text-white grid place-items-center"><GraduationCap size={15} /></div>
+            <img src="/logo-128.png" alt="" className="size-8 rounded-full" />
             <span className="font-bold text-[14px] text-ink tracking-tight">Sir Aiman LMS</span>
           </div>
           <Link href={role === "admin" ? "/admin/settings" : "/profile"} className="flex items-center gap-2" aria-label="Profile">
@@ -88,7 +88,7 @@ export function Shell({
 export function Brand({ sub }: { sub?: string }) {
   return (
     <div className="flex items-center gap-2.5 px-4 h-16 border-b border-slate-100">
-      <div className="size-8 rounded-lg graph-teal text-white grid place-items-center"><GraduationCap size={17} /></div>
+      <img src="/logo-128.png" alt="" className="size-9 rounded-full" />
       <div>
         <div className="text-[14px] font-bold text-ink tracking-tight leading-none">Sir Aiman LMS</div>
         {sub && <div className="text-[11px] text-slate-400 mt-1">{sub}</div>}
