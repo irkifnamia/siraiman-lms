@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: "SIR AIMAN LMS",
-  description: "Learning management for Sir Aiman's mathematics classes – Kolej Matrikulasi Kedah",
+  description: "Learning management for Sir Aiman's mathematics classes – Kedah Matriculation College",
   
   appleWebApp: { capable: true, title: "SIR AIMAN LMS", statusBarStyle: "black-translucent" },
 };

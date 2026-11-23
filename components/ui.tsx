@@ -134,5 +134,5 @@ export function DueChip({ due, done }: { due?: string | Date | null; done?: bool
 
 export function greeting() {
   const h = new Date(Date.now() + 8 * 3600000).getUTCHours();
-  return h < 12 ? "Selamat pagi" : h < 19 ? "Selamat petang" : "Selamat malam";
+  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
 }

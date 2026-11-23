@@ -15,7 +15,7 @@ export function LoginForm({ hasUsername }: { hasUsername: boolean }) {
             <GraduationCap size={24} />
           </div>
           <h1 className="!text-white text-[24px] font-bold">Sir Aiman LMS</h1>
-          <p className="text-[12.5px] text-brand-100 mt-1">Mathematics · Kolej Matrikulasi Kedah</p>
+          <p className="text-[12.5px] text-brand-100 mt-1">Mathematics · Kedah Matriculation College</p>
         </div>
 
         <div className="card p-5 shadow-xl shadow-brand-900/10">
