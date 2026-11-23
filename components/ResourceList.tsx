@@ -1,8 +1,8 @@
-import { ExternalLink, FileText, PlayCircle, Link2, BookOpen } from "lucide-react";
+import { ExternalLink, FileText, PlayCircle, Link2, BookOpen, Globe } from "lucide-react";
 import { fileHref } from "@/lib/drive";
 import { Badge, Empty } from "./ui";
 
-const ICON: Record<string, any> = { Notes: BookOpen, Slides: FileText, "Past paper": FileText, Video: PlayCircle };
+const ICON: Record<string, any> = { Notes: BookOpen, Slides: FileText, "Past paper": FileText, Video: PlayCircle, Websites: Globe };
 
 function host(u: string) { try { return new URL(u).hostname; } catch { return u; } }
 
@@ -25,7 +25,11 @@ export function ResourceList({ rows, actions }: { rows: any[]; actions?: (r: any
                     <div className="text-[11px] text-slate-400 truncate">{r.url.startsWith("drive:") ? "Google Drive" : host(r.url)}</div>
                   </a>
                   {r.class_code && <Badge tone="teal">{r.class_code}</Badge>}
-                  {actions ? actions(r) : <ExternalLink size={14} className="text-slate-300" />}
+                  {actions ? actions(r) : (
+                    <a href={fileHref(r.url)!} target="_blank" rel="noopener" className="btn-primary h-8 px-3 text-[12px] shrink-0">
+                      Open <ExternalLink size={13} />
+                    </a>
+                  )}
                 </div>
               );
             })}

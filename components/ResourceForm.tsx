@@ -10,7 +10,7 @@ export function ResourceForm({ classes, canUpload }: { classes: string[]; canUpl
     <form ref={ref} action={action} className="space-y-3">
       <input name="title" required placeholder="Title (e.g. Chapter 1 Notes – Functions)" className="input font-medium" />
       <div className="grid grid-cols-2 gap-3">
-        <select name="category" className="input">{["Notes", "Slides", "Past paper", "Video", "Other"].map((c) => <option key={c}>{c}</option>)}</select>
+        <select name="category" className="input">{["Notes", "Slides", "Past paper", "Video", "Websites", "Other"].map((c) => <option key={c}>{c}</option>)}</select>
         <select name="class_code" className="input"><option value="">All classes</option>{classes.map((c) => <option key={c}>{c}</option>)}</select>
       </div>
       <input name="res_url" type="url" placeholder="Link (Google Drive, YouTube…)" className="input" />
