@@ -6,7 +6,7 @@ import { toLocalInput } from "@/lib/format";
 
 export function AssignmentForm({ a, classes, canUpload }: { a?: any; classes: string[]; canUpload: boolean }) {
   const [state, action, pending] = useActionState(saveAssignment, null as any);
-  const keep = a?.attachment_url ?? "";
+  const existing = a?.attachment_url ?? "";
   return (
     <form onSubmit={keep(action)} className="space-y-3">
       {a && <input type="hidden" name="id" value={a.id} />}
@@ -28,10 +28,10 @@ export function AssignmentForm({ a, classes, canUpload }: { a?: any; classes: st
       <label className="block"><span className="label">Instructions</span><textarea name="description" defaultValue={a?.description ?? ""} rows={4} className="input" /></label>
       <div>
         <span className="label">Question paper / attachment</span>
-        <input type="hidden" name="attachment_keep" value={keep} />
-        <input name="attachment_url" type="url" defaultValue={keep.startsWith("drive:") ? "" : keep} placeholder="Paste Google Drive link…" className="input" />
+        <input type="hidden" name="attachment_keep" value={existing} />
+        <input name="attachment_url" type="url" defaultValue={existing.startsWith("drive:") ? "" : existing} placeholder="Paste Google Drive link…" className="input" />
         {canUpload && <input name="attachment_file" type="file" className="mt-2 block text-[12px] file:mr-3 file:h-8 file:px-3 file:rounded-lg file:border file:border-slate-200 file:bg-white file:text-[12px] file:font-medium" />}
-        {keep.startsWith("drive:") && <p className="text-[11px] text-slate-400 mt-1">An uploaded file is attached. Choose a new one to replace it.</p>}
+        {existing.startsWith("drive:") && <p className="text-[11px] text-slate-400 mt-1">An uploaded file is attached. Choose a new one to replace it.</p>}
       </div>
       <label className="flex items-center gap-2 text-[13px]"><input type="checkbox" name="published" defaultChecked={a ? a.published : true} className="accent-brand-600 size-4" /> Visible to students</label>
       {state?.error && <p className="text-[12.5px] text-rose-600">{state.error}</p>}
