@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { Pin } from "lucide-react";
+import { ChevronRight, ClipboardCheck, Pin } from "lucide-react";
 import { requireStudent } from "@/lib/auth";
 import { announcementsFor, tasksForStudent } from "@/lib/queries";
+import { requestsForStudent } from "@/lib/info";
 import { currentSemester } from "@/lib/db";
 import { fmtDate, pct, titleCase } from "@/lib/format";
 import { DueChip, Empty, KindIcon, Ring, Section, greeting } from "@/components/ui";
 
 export default async function StudentHome() {
   const s = await requireStudent();
-  const [tasks, news, sem] = await Promise.all([tasksForStudent(s.sid, s.cls!), announcementsFor(s.cls!, 3), currentSemester()]);
+  const [tasks, news, sem, infos] = await Promise.all([tasksForStudent(s.sid, s.cls!), announcementsFor(s.cls!, 3), currentSemester(), requestsForStudent(s.sid, s.cls!)]);
+  const infoTodo = infos.filter((r) => r.open && !r.answered_at);
   const pending = tasks.filter((t) => !t.sub_id);
   const returned = tasks.filter((t) => t.sub_status === "returned");
   const done = tasks.length - pending.length;
@@ -49,6 +51,17 @@ export default async function StudentHome() {
           <div className="mt-4 rounded-xl bg-white/10 px-3 py-2.5 text-[12.5px]">Nothing due. Check the learning plan for what's coming next.</div>
         )}
       </section>
+
+      {infoTodo.length > 0 && (
+        <Link href={infoTodo.length === 1 ? `/info/${infoTodo[0].id}` : "/info"} className="row card flex items-center gap-3 px-3.5 py-3 mb-5 border-marigold/60 bg-marigold/10">
+          <div className="size-9 rounded-lg bg-marigold/30 text-amber-800 grid place-items-center shrink-0"><ClipboardCheck size={18} /></div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[13.5px] font-semibold text-ink truncate">{infoTodo.length === 1 ? infoTodo[0].title : `${infoTodo.length} info requests`}</div>
+            <div className="text-[11.5px] text-amber-800">Sir Aiman needs some information from you</div>
+          </div>
+          <ChevronRight size={16} className="text-amber-700" />
+        </Link>
+      )}
 
       {upcoming.length > 1 && (
         <Section title="Coming up" action={<Link href="/tasks" className="text-[12px] text-brand-700 font-medium">All tasks</Link>}>

@@ -113,3 +113,24 @@ CREATE TABLE IF NOT EXISTS settings (
 CREATE INDEX IF NOT EXISTS idx_students_class ON students(class_code);
 CREATE INDEX IF NOT EXISTS idx_sub_assignment ON submissions(assignment_id);
 CREATE INDEX IF NOT EXISTS idx_sub_student ON submissions(student_id);
+
+-- Info requests: lecturer asks chosen students for information
+CREATE TABLE IF NOT EXISTS info_requests (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  fields JSONB NOT NULL DEFAULT '[]',   -- [{id,label,type,required,options[]}]
+  target_classes TEXT[],                -- null/empty + no students = everyone
+  target_students INT[],
+  due_at TIMESTAMPTZ,
+  open BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS info_responses (
+  id SERIAL PRIMARY KEY,
+  request_id INT NOT NULL REFERENCES info_requests(id) ON DELETE CASCADE,
+  student_id INT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  answers JSONB NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (request_id, student_id)
+);

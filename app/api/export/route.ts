@@ -47,6 +47,15 @@ export async function GET(req: NextRequest) {
     out = [["RANK", "NO MATRIK", "NICKNAME", "NAMA", "KELAS", task ? "MARK" : "TASKS COUNTED", "PERCENT", "GRADE"],
       ...lb.map((b) => [b.rank, b.matric, b.nickname, b.full_name, b.class_code, task ? `${b.mark}/${b.max}` : b.n, r1(b.score), gradeOf(b.score)])];
     name = `leaderboard_${cls || "all"}${task ? "_task" + task : ""}`;
+  } else if (type === "info") {
+    const { targetsOf } = await import("@/lib/info");
+    const r = (await db()`SELECT * FROM info_requests WHERE id = ${Number(p.get("id"))}`)[0];
+    if (!r) return new NextResponse("Not found", { status: 404 });
+    const [targets, resps] = await Promise.all([targetsOf(r), db()`SELECT * FROM info_responses WHERE request_id = ${r.id}`]);
+    const by = new Map(resps.map((x) => [x.student_id, x]));
+    out = [["KELAS", "NO MATRIK", "NICKNAME", "NAMA", ...r.fields.map((f: any) => f.label), "UPDATED"],
+      ...targets.map((t) => { const a = by.get(t.id); return [t.class_code, t.matric, t.nickname, t.full_name, ...r.fields.map((f: any) => a?.answers?.[f.id] ?? ""), a ? new Date(a.updated_at).toISOString() : "not answered"]; })];
+    name = `info_${r.id}_${r.title.replace(/[^\w]+/g, "_").slice(0, 30)}`;
   } else return new NextResponse("Unknown export", { status: 400 });
 
   return new NextResponse(csv(out), {

@@ -271,3 +271,46 @@ export async function saveSubmissionFolder(fd: FormData) {
   await setSetting("submission_folder_id", v ? folderIdFrom(v) : null);
   revalidatePath("/admin/settings");
 }
+
+/* ---------- Info requests ---------- */
+export async function saveInfoRequest(_: any, fd: FormData) {
+  await requireAdmin();
+  const id = num(fd, "id");
+  const title = str(fd, "title");
+  if (!title) return { error: "Give the request a title." };
+  let fields: any[];
+  try { fields = JSON.parse(String(fd.get("fields") || "[]")); } catch { return { error: "Invalid fields." }; }
+  fields = fields
+    .map((f) => ({ id: String(f.id), label: String(f.label || "").trim(), type: f.type, required: !!f.required,
+      ...(f.type === "choice" ? { options: (f.options || []).map((o: string) => o.trim()).filter(Boolean) } : {}) }))
+    .filter((f) => f.label);
+  if (!fields.length) return { error: "Add at least one question." };
+  if (fields.some((f) => f.type === "choice" && f.options.length < 2)) return { error: "Multiple-choice questions need at least two options." };
+  const classes = fd.getAll("target_classes").map(String).filter(Boolean);
+  const studs = fd.getAll("target_students").map(Number).filter(Boolean);
+  const due = fromLocalInput(str(fd, "due_at"));
+  const open = fd.get("open") !== "off";
+  const desc = str(fd, "description");
+  let rid = id;
+  if (id) {
+    await db()`UPDATE info_requests SET title=${title}, description=${desc}, fields=${JSON.stringify(fields)}::jsonb,
+      target_classes=${classes}, target_students=${studs}, due_at=${due}, open=${open} WHERE id=${id}`;
+  } else {
+    const r = await db()`INSERT INTO info_requests(title, description, fields, target_classes, target_students, due_at, open)
+      VALUES (${title}, ${desc}, ${JSON.stringify(fields)}::jsonb, ${classes}, ${studs}, ${due}, ${open}) RETURNING id`;
+    rid = r[0].id;
+  }
+  revalidatePath("/admin/info");
+  redirect(`/admin/info/${rid}`);
+}
+export async function toggleInfoOpen(fd: FormData) {
+  await requireAdmin();
+  await db()`UPDATE info_requests SET open = NOT open WHERE id = ${num(fd, "id")}`;
+  revalidatePath(`/admin/info/${num(fd, "id")}`);
+}
+export async function deleteInfoRequest(fd: FormData) {
+  await requireAdmin();
+  await db()`DELETE FROM info_requests WHERE id = ${num(fd, "id")}`;
+  revalidatePath("/admin/info");
+  redirect("/admin/info");
+}
