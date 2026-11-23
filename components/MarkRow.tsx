@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
-import { Check, ExternalLink, Loader2, MessageSquare, Undo2 } from "lucide-react";
+import Link from "next/link";
+import { Check, ExternalLink, FileCheck2, Loader2, MessageSquare, PenLine, Undo2 } from "lucide-react";
 import { markSubmission, unreturn } from "@/app/actions/admin";
 
 export function MarkRow({ aid, max, st, due }: { aid: number; max: number; st: any; due: string | null }) {
@@ -21,11 +22,18 @@ export function MarkRow({ aid, max, st, due }: { aid: number; max: number; st: a
             {st.file_url ? (
               <a href={href} target="_blank" className="inline-flex items-center gap-1 text-brand-600 font-medium shrink-0"><ExternalLink size={11} />{st.file_name || "Open"}</a>
             ) : st.sub_pk ? <span className="text-slate-500 shrink-0">{st.file_name || "Marked"}</span> : <span className="text-rose-500 shrink-0">Not submitted</span>}
+            {st.marked_file_url && <a href={`/api/files/${st.marked_file_url.slice(6)}`} target="_blank" className="inline-flex items-center gap-0.5 text-emerald-600 shrink-0"><FileCheck2 size={11} />marked</a>}
             {late && <span className="text-amber-600 shrink-0">· late</span>}
             {returned && <span className="text-emerald-600 shrink-0">· returned</span>}
             {st.note && <span className="text-slate-400 truncate">· “{st.note}”</span>}
           </div>
         </div>
+        {st.file_url && (
+          <Link href={`/admin/assignments/${aid}/mark/${st.id}`} title="Annotate with pen"
+            className="h-8 px-2.5 inline-flex items-center gap-1 rounded-lg border border-brand-200 text-brand-700 bg-brand-50 text-[12px] font-medium hover:bg-brand-100">
+            <PenLine size={14} /><span className="hidden sm:inline">Annotate</span>
+          </Link>
+        )}
         <button type="button" onClick={() => setOpen(!open)} title="Feedback"
           className={`size-8 grid place-items-center rounded-lg ${st.feedback || open ? "text-brand-600 bg-brand-50" : "text-slate-400 hover:bg-slate-100"}`}>
           <MessageSquare size={15} />

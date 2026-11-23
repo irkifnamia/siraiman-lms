@@ -12,6 +12,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   if (s.role !== "admin") {
     const ok = await db()`
       SELECT 1 FROM submissions WHERE file_url = ${ref} AND student_id = ${s.sid}
+      UNION ALL SELECT 1 FROM submissions WHERE marked_file_url = ${ref} AND student_id = ${s.sid} AND status = 'returned'
       UNION ALL SELECT 1 FROM assignments WHERE attachment_url = ${ref} AND published AND (class_code IS NULL OR class_code = ${s.cls})
       UNION ALL SELECT 1 FROM resources WHERE url = ${ref} AND (class_code IS NULL OR class_code = ${s.cls})
       LIMIT 1`;

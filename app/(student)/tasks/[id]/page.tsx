@@ -52,6 +52,9 @@ export default async function TaskDetail({ params }: { params: Promise<{ id: str
             {Number(sub.mark)}<span className="text-[15px] text-slate-400 font-normal"> / {Number(a.max_mark)}</span>
             <span className="text-[13px] text-slate-500 font-normal ml-2">{pct(sub.mark, a.max_mark)}%</span>
           </div>
+          {sub.marked_file_url && (
+            <a href={fileHref(sub.marked_file_url)!} target="_blank" className="btn-primary mt-3"><FileText size={15} /> View marked copy</a>
+          )}
           {sub.feedback && (
             <div className="mt-2 flex gap-2 text-[13px] text-slate-700"><MessageSquare size={15} className="mt-0.5 text-brand-600 shrink-0" /><p className="whitespace-pre-line">{sub.feedback}</p></div>
           )}

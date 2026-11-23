@@ -82,6 +82,8 @@ CREATE TABLE IF NOT EXISTS submissions (
   mark NUMERIC,
   feedback TEXT,
   returned_at TIMESTAMPTZ,
+  annotations JSONB,                  -- tablet ink (lib/ink.ts format)
+  marked_file_url TEXT,               -- drive:<id> of the _marked.pdf
   UNIQUE (assignment_id, student_id)
 );
 

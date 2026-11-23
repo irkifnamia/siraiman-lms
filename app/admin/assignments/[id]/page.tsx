@@ -32,7 +32,7 @@ export default async function AssignmentDetail({ params, searchParams }: {
     db()`SELECT * FROM assignments WHERE id = ${aid}`,
     db()`
       SELECT st.id, st.nickname, st.matric, st.class_code, sb.id AS sub_pk, sb.file_url, sb.file_name, sb.note,
-             sb.submitted_at, sb.status, sb.mark, sb.feedback
+             sb.submitted_at, sb.status, sb.mark, sb.feedback, sb.marked_file_url
       FROM students st
       JOIN assignments a ON a.id = ${aid}
       LEFT JOIN submissions sb ON sb.student_id = st.id AND sb.assignment_id = a.id

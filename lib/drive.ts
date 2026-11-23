@@ -164,3 +164,39 @@ export function fileHref(ref?: string | null) {
   if (ref.startsWith("drive:")) return `/api/files/${ref.slice(6)}`;
   return ref;
 }
+
+/** Download a Drive file fully (server-side, no size limit from Vercel). */
+export async function downloadFromDrive(id: string) {
+  const tok = await accessToken();
+  const meta = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?fields=name,mimeType,parents`, {
+    headers: { Authorization: `Bearer ${tok}` },
+  }).then((r) => r.json());
+  if (meta.error) throw new Error(meta.error.message || "Drive file not found");
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, { headers: { Authorization: `Bearer ${tok}` } });
+  if (!r.ok) throw new Error("Could not download the submission from Drive");
+  return { bytes: new Uint8Array(await r.arrayBuffer()), name: meta.name as string, mime: meta.mimeType as string, parents: (meta.parents || []) as string[] };
+}
+
+/** Create or overwrite the marked copy next to the original. Returns the Drive id. */
+export async function saveMarkedCopy(bytes: Uint8Array, name: string, parent: string | undefined, existingId?: string | null) {
+  const tok = await accessToken();
+  if (existingId) {
+    const r = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=media&fields=id`, {
+      method: "PATCH", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/pdf" }, body: Buffer.from(bytes),
+    });
+    if (r.ok) return (await r.json()).id as string;
+  }
+  const boundary = "lms" + Math.random().toString(36).slice(2);
+  const meta = { name, mimeType: "application/pdf", ...(parent ? { parents: [parent] } : {}) };
+  const body = Buffer.concat([
+    Buffer.from(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/pdf\r\n\r\n`),
+    Buffer.from(bytes),
+    Buffer.from(`\r\n--${boundary}--`),
+  ]);
+  const r = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
+    method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": `multipart/related; boundary=${boundary}` }, body,
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error?.message || "Could not save the marked copy to Drive");
+  return j.id as string;
+}
