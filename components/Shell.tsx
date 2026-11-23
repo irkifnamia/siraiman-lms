@@ -7,31 +7,9 @@ import {
   BookOpen, Settings, Table2, FolderOpen, User, LogOut, GraduationCap,
 } from "lucide-react";
 
+import { ADMIN_NAV, STUDENT_NAV, type Icon, type Item } from "./nav";
+
 const ICONS = { Home, ClipboardList, CalendarRange, Award, Menu, Users, Megaphone, CheckSquare, BookOpen, Settings, Table2, FolderOpen, User };
-type Icon = keyof typeof ICONS;
-type Item = { href: string; label: string; icon: Icon };
-
-export const STUDENT_NAV: Item[] = [
-  { href: "/", label: "Home", icon: "Home" },
-  { href: "/tasks", label: "Tasks", icon: "ClipboardList" },
-  { href: "/plan", label: "Plan", icon: "CalendarRange" },
-  { href: "/marks", label: "Marks", icon: "Award" },
-  { href: "/announcements", label: "News", icon: "Megaphone" },
-  { href: "/resources", label: "Resources", icon: "FolderOpen" },
-  { href: "/profile", label: "Profile", icon: "User" },
-];
-
-export const ADMIN_NAV: Item[] = [
-  { href: "/admin", label: "Dashboard", icon: "Home" },
-  { href: "/admin/students", label: "Students", icon: "Users" },
-  { href: "/admin/assignments", label: "Tasks", icon: "ClipboardList" },
-  { href: "/admin/attendance", label: "Attendance", icon: "CheckSquare" },
-  { href: "/admin/gradebook", label: "Gradebook", icon: "Table2" },
-  { href: "/admin/announcements", label: "Announcements", icon: "Megaphone" },
-  { href: "/admin/plan", label: "Learning plan", icon: "CalendarRange" },
-  { href: "/admin/resources", label: "Resources", icon: "FolderOpen" },
-  { href: "/admin/settings", label: "Settings", icon: "Settings" },
-];
 
 export function Shell({
   role, name, sub, children, logout,
@@ -121,10 +99,10 @@ export function Avatar({ name, size = 32 }: { name: string; size?: number }) {
   );
 }
 
-export function MoreList({ items }: { items: Item[] }) {
+export function MoreList({ role }: { role: "admin" | "student" }) {
   return (
     <div className="card divide-y divide-slate-100">
-      {items.map((n) => {
+      {(role === "admin" ? ADMIN_NAV : STUDENT_NAV).slice(4).map((n) => {
         const I = ICONS[n.icon];
         return (
           <Link key={n.href} href={n.href} className="flex items-center gap-3 px-4 h-12 text-[13.5px] hover:bg-slate-50">

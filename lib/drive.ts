@@ -1,11 +1,11 @@
 import { getSetting, setSetting } from "./db";
 
 /**
- * Google Drive integration (OAuth, scope drive.file).
+ * Google Drive integration (OAuth, full drive scope so files can go into folders the lecturer created).
  * The lecturer connects once in Admin → Settings; the refresh token is stored in Neon.
  * Uploaded files stay private in the lecturer's Drive and are streamed through /api/files/[id].
  */
-export const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+export const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
 export const MAX_UPLOAD = 4 * 1024 * 1024; // Vercel function body limit ~4.5MB
 
 export function driveConfigured() {
@@ -91,20 +91,38 @@ async function findOrCreateFolder(name: string, parent?: string) {
   return c.id as string;
 }
 
+export function folderIdFrom(input: string) {
+  const m = input.match(/folders\/([\w-]{10,})/) || input.match(/[?&]id=([\w-]{10,})/) || input.match(/^([\w-]{10,})$/);
+  return m ? m[1] : null;
+}
+
+/** Lecturer uploads (attachments, resources) go into "LMS Uploads" inside the semester folder. */
 async function rootFolder() {
   let id = await getSetting("drive_root_id");
   if (!id) {
-    id = await findOrCreateFolder("SIR AIMAN LMS – Uploads");
+    const sem = await getSetting("drive_folder_id");
+    id = await findOrCreateFolder("LMS Uploads", sem || undefined);
     await setSetting("drive_root_id", id);
   }
   return id;
 }
 
+/** Student work: <submission folder>/<CLASS>/<task>/<file>. Falls back to the uploads folder. */
+export async function uploadSubmission(file: File, name: string, cls: string, taskFolder: string) {
+  const sub = await getSetting("submission_folder_id");
+  const base = sub ? await findOrCreateFolder(cls || "OTHER", sub) : await findOrCreateFolder("Submissions", await rootFolder());
+  const folder = await findOrCreateFolder(taskFolder, base);
+  return uploadInto(file, name, folder);
+}
+
 /** Upload a file into <root>/<subfolder>. Returns Drive file id. */
 export async function uploadToDrive(file: File, name: string, subfolder: string) {
+  return uploadInto(file, name, await findOrCreateFolder(subfolder, await rootFolder()));
+}
+
+async function uploadInto(file: File, name: string, parent: string) {
   if (file.size > MAX_UPLOAD) throw new Error("File is larger than 4 MB");
   const tok = await accessToken();
-  const parent = await findOrCreateFolder(subfolder, await rootFolder());
   const meta = { name, parents: [parent] };
   const boundary = "lms" + Math.random().toString(36).slice(2);
   const buf = Buffer.from(await file.arrayBuffer());

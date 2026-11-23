@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db, setSetting } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { driveConnected, uploadToDrive } from "@/lib/drive";
+import { driveConnected, folderIdFrom, uploadToDrive } from "@/lib/drive";
 import { fromLocalInput } from "@/lib/format";
 
 const str = (fd: FormData, k: string) => {
@@ -283,4 +283,11 @@ export async function importStudents(_: any, fd: FormData) {
   const added = res.filter((r) => r.inserted).length;
   revalidatePath("/admin/students");
   return { ok: `Imported ${res.length} rows · ${added} new, ${res.length - added} updated.`, at: Date.now() };
+}
+
+export async function saveSubmissionFolder(fd: FormData) {
+  await requireAdmin();
+  const v = str(fd, "folder");
+  await setSetting("submission_folder_id", v ? folderIdFrom(v) : null);
+  revalidatePath("/admin/settings");
 }

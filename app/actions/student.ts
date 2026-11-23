@@ -2,7 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireStudent } from "@/lib/auth";
-import { driveConnected, uploadToDrive } from "@/lib/drive";
+import { driveConnected, uploadSubmission } from "@/lib/drive";
 
 export async function submitTask(_: any, fd: FormData) {
   const s = await requireStudent();
@@ -24,7 +24,7 @@ export async function submitTask(_: any, fd: FormData) {
       const st = (await db()`SELECT matric, nickname FROM students WHERE id = ${s.sid}`)[0];
       const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : "";
       fileName = `${st.matric}_${st.nickname}${ext}`;
-      const id = await uploadToDrive(file, fileName, `${a.id} · ${a.title}`);
+      const id = await uploadSubmission(file, fileName, s.cls || "", `${a.title} (#${a.id})`);
       fileUrl = `drive:${id}`;
       fileName = file.name;
     } else if (link) {
