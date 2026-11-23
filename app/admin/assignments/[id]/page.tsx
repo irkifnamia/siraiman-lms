@@ -27,14 +27,20 @@ export default async function AssignmentDetail({ params, searchParams }: {
     );
   }
 
-  const a = (await db()`SELECT * FROM assignments WHERE id = ${Number(id)}`)[0];
+  const aid = Number(id);
+  const [ar, rows] = await Promise.all([
+    db()`SELECT * FROM assignments WHERE id = ${aid}`,
+    db()`
+      SELECT st.id, st.nickname, st.matric, st.class_code, sb.id AS sub_pk, sb.file_url, sb.file_name, sb.note,
+             sb.submitted_at, sb.status, sb.mark, sb.feedback
+      FROM students st
+      JOIN assignments a ON a.id = ${aid}
+      LEFT JOIN submissions sb ON sb.student_id = st.id AND sb.assignment_id = a.id
+      WHERE st.active AND (a.class_code IS NULL OR st.class_code = a.class_code)
+      ORDER BY st.class_code, st.nickname`,
+  ]);
+  const a = ar[0];
   if (!a) notFound();
-  const rows = await db()`
-    SELECT st.id, st.nickname, st.matric, st.class_code, sb.id AS sub_pk, sb.file_url, sb.file_name, sb.note,
-           sb.submitted_at, sb.status, sb.mark, sb.feedback
-    FROM students st LEFT JOIN submissions sb ON sb.student_id = st.id AND sb.assignment_id = ${a.id}
-    WHERE st.active AND (${a.class_code}::text IS NULL OR st.class_code = ${a.class_code})
-    ORDER BY st.class_code, st.nickname`;
 
   const subs = rows.filter((r) => r.file_url);
   const toMark = rows.filter((r) => r.sub_pk && r.status === "submitted");

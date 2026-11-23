@@ -11,11 +11,15 @@ import { SubmitForm } from "@/components/SubmitForm";
 export default async function TaskDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const s = await requireStudent();
-  const a = (await db()`SELECT * FROM assignments WHERE id = ${Number(id)} AND published AND (class_code IS NULL OR class_code = ${s.cls})`)[0];
+  const [ar, sr, canUpload] = await Promise.all([
+    db()`SELECT * FROM assignments WHERE id = ${Number(id)} AND published AND (class_code IS NULL OR class_code = ${s.cls})`,
+    db()`SELECT * FROM submissions WHERE assignment_id = ${Number(id)} AND student_id = ${s.sid} AND (file_url IS NOT NULL OR status = 'returned')`,
+    driveConnected(),
+  ]);
+  const a = ar[0];
   if (!a) notFound();
-  const sub = (await db()`SELECT * FROM submissions WHERE assignment_id = ${a.id} AND student_id = ${s.sid} AND (file_url IS NOT NULL OR status = 'returned')`)[0];
+  const sub = sr[0];
   const st = statusOf(sub, a.due_at);
-  const canUpload = await driveConnected();
 
   return (
     <>
