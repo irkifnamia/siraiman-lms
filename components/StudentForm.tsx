@@ -1,4 +1,5 @@
 "use client";
+import { keep } from "@/lib/keepForm";
 import { useActionState } from "react";
 import { saveStudent } from "@/app/actions/admin";
 
@@ -9,7 +10,7 @@ const F = ({ n, l, d, ...p }: any) => (
 export function StudentForm({ s, classes }: { s?: any; classes: string[] }) {
   const [state, action, pending] = useActionState(saveStudent, null as any);
   return (
-    <form action={action} className="space-y-3">
+    <form onSubmit={keep(action)} className="space-y-3">
       {s && <input type="hidden" name="id" value={s.id} />}
       <div className="grid grid-cols-2 gap-3">
         <F n="matric" l="Matric no." d={s?.matric} required className="input uppercase" />

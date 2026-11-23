@@ -1,4 +1,5 @@
 "use client";
+import { keep } from "@/lib/keepForm";
 import { useActionState } from "react";
 import { Loader2 } from "lucide-react";
 import { submitInfo } from "@/app/actions/student";
@@ -8,7 +9,7 @@ export function InfoAnswerForm({ id, fields, answers, open }: { id: number; fiel
   const [state, action, pending] = useActionState(submitInfo, null as any);
   const a = answers || {};
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={keep(action)} className="space-y-4">
       <input type="hidden" name="request_id" value={id} />
       <fieldset disabled={!open} className="space-y-4">
         {fields.map((f) => {

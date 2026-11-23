@@ -1,4 +1,5 @@
 "use client";
+import { keep } from "@/lib/keepForm";
 import { useActionState } from "react";
 import { saveAssignment } from "@/app/actions/admin";
 import { toLocalInput } from "@/lib/format";
@@ -7,7 +8,7 @@ export function AssignmentForm({ a, classes, canUpload }: { a?: any; classes: st
   const [state, action, pending] = useActionState(saveAssignment, null as any);
   const keep = a?.attachment_url ?? "";
   return (
-    <form action={action} className="space-y-3">
+    <form onSubmit={keep(action)} className="space-y-3">
       {a && <input type="hidden" name="id" value={a.id} />}
       <label className="block"><span className="label">Title</span><input name="title" required defaultValue={a?.title ?? ""} placeholder="Tutorial 3 – Limits & Continuity" className="input" /></label>
       <div className="grid grid-cols-2 gap-3">

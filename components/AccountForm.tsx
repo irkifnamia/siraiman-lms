@@ -1,4 +1,5 @@
 "use client";
+import { keep } from "@/lib/keepForm";
 import { useActionState } from "react";
 import { Loader2 } from "lucide-react";
 import { updateAccount } from "@/app/actions/auth";
@@ -6,7 +7,7 @@ import { updateAccount } from "@/app/actions/auth";
 export function AccountForm({ name, username }: { name: string; username: string }) {
   const [state, action, pending] = useActionState(updateAccount, null as any);
   return (
-    <form action={action} className="space-y-3">
+    <form onSubmit={keep(action)} className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <label className="block"><span className="label">Display name</span>
           <input name="name" defaultValue={name} maxLength={40} className="input" /></label>

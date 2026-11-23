@@ -1,4 +1,5 @@
 "use client";
+import { keep } from "@/lib/keepForm";
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Check, ExternalLink, FileCheck2, Loader2, MessageSquare, PenLine, Undo2 } from "lucide-react";
@@ -13,7 +14,7 @@ export function MarkRow({ aid, max, st, due }: { aid: number; max: number; st: a
 
   return (
     <div className={`px-3.5 py-2.5 ${returned ? "bg-emerald-50/40" : ""}`}>
-      <form action={action} className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
+      <form onSubmit={keep(action)} className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
         <input type="hidden" name="assignment_id" value={aid} />
         <input type="hidden" name="student_id" value={st.id} />
         <div className="min-w-0 flex-1">

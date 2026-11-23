@@ -1,4 +1,5 @@
 "use client";
+import { keep } from "@/lib/keepForm";
 import { useActionState, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { saveInfoRequest } from "@/app/actions/admin";
@@ -44,7 +45,7 @@ export function InfoRequestForm({ r, classes, students }: {
   const seg = (on: boolean) => `flex-1 h-8 rounded-md text-[12.5px] ${on ? "bg-white shadow-sm text-brand-800 font-semibold" : "text-slate-500"}`;
 
   return (
-    <form action={action} className="space-y-5">
+    <form onSubmit={keep(action)} className="space-y-5">
       {r && <input type="hidden" name="id" value={r.id} />}
       <input type="hidden" name="fields" value={JSON.stringify(fields)} />
       {mode === "classes" && cls.map((c) => <input key={c} type="hidden" name="target_classes" value={c} />)}

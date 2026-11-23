@@ -1,4 +1,5 @@
 "use client";
+import { keep } from "@/lib/keepForm";
 import { useActionState, useRef, useEffect } from "react";
 import { saveResource } from "@/app/actions/admin";
 
@@ -7,7 +8,7 @@ export function ResourceForm({ classes, canUpload }: { classes: string[]; canUpl
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => { if (state?.ok) ref.current?.reset(); }, [state]);
   return (
-    <form ref={ref} action={action} className="space-y-3">
+    <form ref={ref} onSubmit={keep(action)} className="space-y-3">
       <input name="title" required placeholder="Title (e.g. Chapter 1 Notes – Functions)" className="input font-medium" />
       <div className="grid grid-cols-2 gap-3">
         <select name="category" className="input">{["Notes", "Slides", "Past paper", "Video", "Websites", "Other"].map((c) => <option key={c}>{c}</option>)}</select>

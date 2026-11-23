@@ -134,3 +134,26 @@ CREATE TABLE IF NOT EXISTS info_responses (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (request_id, student_id)
 );
+
+-- Assessments: marks entered by the lecturer outside of Tasks (individual/group assignments, etc.)
+CREATE TABLE IF NOT EXISTS assessments (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'Individual assignment',
+  class_code TEXT,                     -- null = all classes
+  max_mark NUMERIC NOT NULL DEFAULT 100,
+  weight NUMERIC,                      -- % contribution to course mark (optional)
+  held_on DATE,
+  published BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS assessment_marks (
+  id SERIAL PRIMARY KEY,
+  assessment_id INT NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+  student_id INT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  mark NUMERIC,
+  grp TEXT,                            -- group name for group work
+  remark TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (assessment_id, student_id)
+);

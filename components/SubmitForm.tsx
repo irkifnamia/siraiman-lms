@@ -1,4 +1,5 @@
 "use client";
+import { keep } from "@/lib/keepForm";
 import { useActionState, useState } from "react";
 import { Link2, Loader2, Paperclip, Upload } from "lucide-react";
 import { submitTask } from "@/app/actions/student";
@@ -9,7 +10,7 @@ export function SubmitForm({ id, canUpload, resubmit }: { id: number; canUpload:
   const [fname, setFname] = useState("");
 
   return (
-    <form action={action} className="space-y-3">
+    <form onSubmit={keep(action)} className="space-y-3">
       <input type="hidden" name="assignment_id" value={id} />
       {canUpload && (
         <div className="inline-flex bg-slate-100 rounded-lg p-0.5 text-[12px]">

@@ -1,4 +1,5 @@
 "use client";
+import { keep } from "@/lib/keepForm";
 import { useActionState, useState } from "react";
 import { GraduationCap, Loader2 } from "lucide-react";
 import { login } from "@/app/actions/auth";
@@ -28,7 +29,7 @@ export function LoginForm({ hasUsername }: { hasUsername: boolean }) {
             ))}
           </div>
 
-          <form action={action} className="space-y-3">
+          <form onSubmit={keep(action)} className="space-y-3">
             <input type="hidden" name="role" value={role} />
             {role === "student" ? (
               <>

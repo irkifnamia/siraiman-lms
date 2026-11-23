@@ -314,3 +314,89 @@ export async function deleteInfoRequest(fd: FormData) {
   revalidatePath("/admin/info");
   redirect("/admin/info");
 }
+
+/* ---------- Assessments (marks outside Tasks) ---------- */
+export async function saveAssessment(_: any, fd: FormData) {
+  await requireAdmin();
+  const id = num(fd, "id");
+  const title = str(fd, "title");
+  const max = num(fd, "max_mark");
+  if (!title) return { error: "Give the assessment a name." };
+  if (!max || max <= 0) return { error: "Full mark must be more than 0." };
+  const weight = num(fd, "weight");
+  if (weight !== null && (weight < 0 || weight > 100)) return { error: "Weight must be between 0 and 100%." };
+  const v = { kind: str(fd, "kind") || "Individual assignment", cls: str(fd, "class_code"), held: str(fd, "held_on"), pub: fd.get("published") === "on" };
+  let aid = id;
+  if (id) await db()`UPDATE assessments SET title=${title}, kind=${v.kind}, class_code=${v.cls}, max_mark=${max}, weight=${weight}, held_on=${v.held}, published=${v.pub} WHERE id=${id}`;
+  else aid = (await db()`INSERT INTO assessments(title, kind, class_code, max_mark, weight, held_on, published) VALUES (${title}, ${v.kind}, ${v.cls}, ${max}, ${weight}, ${v.held}, ${v.pub}) RETURNING id`)[0].id;
+  revalidatePath("/admin/assessments");
+  redirect(`/admin/assessments/${aid}`);
+}
+export async function toggleAssessmentPublish(fd: FormData) {
+  await requireAdmin();
+  await db()`UPDATE assessments SET published = NOT published WHERE id = ${num(fd, "id")}`;
+  revalidatePath(`/admin/assessments/${num(fd, "id")}`);
+}
+export async function deleteAssessment(fd: FormData) {
+  await requireAdmin();
+  await db()`DELETE FROM assessments WHERE id = ${num(fd, "id")}`;
+  revalidatePath("/admin/assessments");
+  redirect("/admin/assessments");
+}
+
+/** Save the whole mark sheet. Group work: members with a blank mark get their group's mark. */
+export async function saveAssessmentMarks(_: any, fd: FormData) {
+  await requireAdmin();
+  const aid = num(fd, "assessment_id")!;
+  const a = (await db()`SELECT max_mark::float AS max FROM assessments WHERE id = ${aid}`)[0];
+  if (!a) return { error: "Assessment not found." };
+  const ids = fd.getAll("sid").map(Number);
+  const rows = ids.map((sid) => ({
+    sid, mark: str(fd, `m_${sid}`), grp: str(fd, `g_${sid}`)?.toUpperCase() ?? null, remark: str(fd, `r_${sid}`),
+  }));
+  for (const r of rows) {
+    if (r.mark !== null && !/^\d+(\.\d+)?$/.test(r.mark)) return { error: `“${r.mark}” is not a number.` };
+    if (r.mark !== null && Number(r.mark) > a.max) return { error: `Marks can't exceed ${a.max} (found ${r.mark}).` };
+  }
+  const groupMark = new Map<string, string>();
+  rows.forEach((r) => { if (r.grp && r.mark !== null && !groupMark.has(r.grp)) groupMark.set(r.grp, r.mark); });
+  rows.forEach((r) => { if (r.grp && r.mark === null && groupMark.has(r.grp)) r.mark = groupMark.get(r.grp)!; });
+  const keep = rows.filter((r) => r.mark !== null || r.grp || r.remark);
+  await db()`DELETE FROM assessment_marks WHERE assessment_id = ${aid} AND NOT (student_id = ANY(${keep.map((r) => r.sid)}::int[]))`;
+  if (keep.length)
+    await db()`INSERT INTO assessment_marks(assessment_id, student_id, mark, grp, remark, updated_at)
+      SELECT ${aid}, x.sid, x.mark::numeric, x.grp, x.remark, now()
+      FROM unnest(${keep.map((r) => r.sid)}::int[], ${keep.map((r) => r.mark)}::text[], ${keep.map((r) => r.grp)}::text[], ${keep.map((r) => r.remark)}::text[]) AS x(sid, mark, grp, remark)
+      ON CONFLICT (assessment_id, student_id) DO UPDATE SET mark = EXCLUDED.mark, grp = EXCLUDED.grp, remark = EXCLUDED.remark, updated_at = now()`;
+  revalidatePath(`/admin/assessments/${aid}`);
+  const filled = keep.filter((r) => r.mark !== null).length;
+  return { ok: `Saved ${filled} mark${filled === 1 ? "" : "s"}.`, at: Date.now() };
+}
+
+/** Paste "MATRIC, MARK" lines (comma, tab or space separated) copied from a spreadsheet. */
+export async function pasteAssessmentMarks(_: any, fd: FormData) {
+  await requireAdmin();
+  const aid = num(fd, "assessment_id")!;
+  const a = (await db()`SELECT max_mark::float AS max, class_code FROM assessments WHERE id = ${aid}`)[0];
+  const lines = String(fd.get("paste") || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const parsed: { matric: string; mark: string }[] = [], bad: string[] = [];
+  for (const l of lines) {
+    const m = l.match(/^([A-Za-z]{2}\d{6,})[\s,;\t]+(\d+(?:\.\d+)?)/);
+    if (!m) { if (!/matri|mark/i.test(l)) bad.push(l); continue; }
+    if (Number(m[2]) > a.max) { bad.push(`${l} (over ${a.max})`); continue; }
+    parsed.push({ matric: m[1].toUpperCase(), mark: m[2] });
+  }
+  if (!parsed.length) return { error: "No “MATRIC, MARK” lines found." };
+  const studs = await db()`SELECT id, upper(matric) AS matric FROM students WHERE upper(matric) = ANY(${parsed.map((p) => p.matric)}::text[])
+    AND (${a.class_code}::text IS NULL OR class_code = ${a.class_code})`;
+  const byM = new Map(studs.map((s) => [s.matric, s.id]));
+  const ok = parsed.filter((p) => byM.has(p.matric));
+  const unknown = parsed.filter((p) => !byM.has(p.matric)).map((p) => p.matric);
+  if (ok.length)
+    await db()`INSERT INTO assessment_marks(assessment_id, student_id, mark, updated_at)
+      SELECT ${aid}, x.sid, x.mark::numeric, now() FROM unnest(${ok.map((p) => byM.get(p.matric))}::int[], ${ok.map((p) => p.mark)}::text[]) AS x(sid, mark)
+      ON CONFLICT (assessment_id, student_id) DO UPDATE SET mark = EXCLUDED.mark, updated_at = now()`;
+  revalidatePath(`/admin/assessments/${aid}`);
+  const notes = [unknown.length ? `Not found${a.class_code ? " in " + a.class_code : ""}: ${unknown.join(", ")}` : "", bad.length ? `Skipped: ${bad.slice(0, 5).join(" | ")}` : ""].filter(Boolean).join(". ");
+  return { ok: `Imported ${ok.length} mark${ok.length === 1 ? "" : "s"}.${notes ? " " + notes : ""}`, at: Date.now() };
+}
