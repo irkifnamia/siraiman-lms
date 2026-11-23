@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession, isAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { streamFromDrive } from "@/lib/drive";
 
@@ -9,6 +9,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   const s = await getSession();
   if (!s) return new NextResponse("Unauthorized", { status: 401 });
   const ref = `drive:${id}`;
+  if (s.role === "admin" && !(await isAdmin(s))) return new NextResponse("Session expired", { status: 401 });
   if (s.role !== "admin") {
     const ok = await db()`
       SELECT 1 FROM submissions WHERE file_url = ${ref} AND student_id = ${s.sid}

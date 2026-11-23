@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession, isAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { leaderboard, markedRows } from "@/lib/analysis";
 import { gradeOf, r1 } from "@/lib/stats";
@@ -12,7 +12,7 @@ const csv = (rows: any[][]) => "﻿" + rows.map((r) => r.map(esc).join(",")).joi
 
 export async function GET(req: NextRequest) {
   const s = await getSession();
-  if (s?.role !== "admin") return new NextResponse("Forbidden", { status: 403 });
+  if (!(await isAdmin(s))) return new NextResponse("Forbidden", { status: 403 });
   const p = req.nextUrl.searchParams;
   const type = p.get("type");
   const cls = p.get("class") || "";

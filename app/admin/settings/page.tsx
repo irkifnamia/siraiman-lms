@@ -3,12 +3,14 @@ import { db, getSetting } from "@/lib/db";
 import { driveConfigured, driveConnected, redirectUri } from "@/lib/drive";
 import { Card, PageHeader, Section } from "@/components/ui";
 import { ImportForm } from "@/components/ImportForm";
+import { AccountForm } from "@/components/AccountForm";
+import { adminProfile } from "@/lib/auth";
 import { disconnectDrive, saveSemester, saveSubmissionFolder } from "@/app/actions/admin";
 
 export default async function Settings({ searchParams }: { searchParams: Promise<{ drive?: string; err?: string }> }) {
   const { drive, err } = await searchParams;
-  const [configured, connected, sem, subFolder] = await Promise.all([
-    driveConfigured(), driveConnected(), db()`SELECT * FROM semesters WHERE is_current LIMIT 1`, getSetting("submission_folder_id"),
+  const [configured, connected, sem, subFolder, prof] = await Promise.all([
+    driveConfigured(), driveConnected(), db()`SELECT * FROM semesters WHERE is_current LIMIT 1`, getSetting("submission_folder_id"), adminProfile(),
   ]);
   const s = sem[0];
   const d = (v: any) => (v ? new Date(v).toISOString().slice(0, 10) : "");
@@ -16,6 +18,10 @@ export default async function Settings({ searchParams }: { searchParams: Promise
   return (
     <>
       <PageHeader title="Settings" />
+
+      <Section title="Account">
+        <Card className="p-4"><AccountForm name={prof.name} username={prof.username} /></Card>
+      </Section>
 
       <Section title="Google Drive">
         <Card className="p-4">

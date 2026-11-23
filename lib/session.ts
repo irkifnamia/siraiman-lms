@@ -5,6 +5,7 @@ export type Session = {
   sid?: number;
   name: string;
   cls?: string;
+  ver?: string;
 };
 
 export const COOKIE = "lms_session";

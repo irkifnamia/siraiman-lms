@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { getSession } from "@/lib/auth";
+import { getSession, isAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { downloadFromDrive, saveMarkedCopy } from "@/lib/drive";
 import { buildMarkedPdf } from "@/lib/merge";
@@ -15,7 +15,7 @@ export const maxDuration = 60;
  */
 export async function POST(req: Request, { params }: { params: Promise<{ subId: string }> }) {
   const s = await getSession();
-  if (s?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await isAdmin(s))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { subId } = await params;
   const body = await req.json().catch(() => null);
   if (!body || !isAnnotations(body.annotations)) return NextResponse.json({ error: "Bad request" }, { status: 400 });

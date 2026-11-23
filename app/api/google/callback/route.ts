@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession, isAdmin } from "@/lib/auth";
 import { exchangeCode } from "@/lib/drive";
 
 export async function GET(req: NextRequest) {
   const s = await getSession();
-  if (s?.role !== "admin") return new NextResponse("Forbidden", { status: 403 });
+  if (!(await isAdmin(s))) return new NextResponse("Forbidden", { status: 403 });
   const code = req.nextUrl.searchParams.get("code");
   const back = new URL("/admin/settings", req.url);
   try {

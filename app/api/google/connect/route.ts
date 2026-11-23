@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession, isAdmin } from "@/lib/auth";
 import { DRIVE_SCOPE, redirectUri } from "@/lib/drive";
 
 export async function GET() {
   const s = await getSession();
-  if (s?.role !== "admin") return new NextResponse("Forbidden", { status: 403 });
+  if (!(await isAdmin(s))) return new NextResponse("Forbidden", { status: 403 });
   const u = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   u.search = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!, redirect_uri: redirectUri(), response_type: "code",
