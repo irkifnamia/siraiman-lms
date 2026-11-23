@@ -29,8 +29,8 @@ export default async function Marks() {
       </div>
 
       {mine && mine.rank <= 3 && (
-        <div className="card px-4 py-3 mb-5 flex items-center gap-3 border-brand-200 bg-brand-50/60">
-          <Trophy size={20} className="text-brand-600" />
+        <div className="card px-4 py-3 mb-5 flex items-center gap-3 border-marigold/50 bg-marigold/10">
+          <Trophy size={20} className="text-amber-600" />
           <div className="text-[13px]"><b>{["🥇 Top of the class", "🥈 2nd in class", "🥉 3rd in class"][mine.rank - 1]}</b> — keep it up!</div>
         </div>
       )}

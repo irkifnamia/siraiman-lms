@@ -3,7 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { requireStudent } from "@/lib/auth";
 import { tasksForStudent } from "@/lib/queries";
 import { fmtDate, relDue } from "@/lib/format";
-import { Badge, Empty, PageHeader, Section, statusOf } from "@/components/ui";
+import { Badge, DueChip, Empty, KindIcon, PageHeader, Section, statusOf } from "@/components/ui";
 
 export default async function Tasks() {
   const s = await requireStudent();
@@ -14,16 +14,17 @@ export default async function Tasks() {
   const Row = ({ t }: { t: any }) => {
     const st = statusOf(t.sub_id ? { status: t.sub_status, submitted_at: t.submitted_at } : null, t.due_at);
     return (
-      <Link href={`/tasks/${t.id}`} className="flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50">
+      <Link href={`/tasks/${t.id}`} className="row flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50">
+        <KindIcon kind={t.kind} size={34} />
         <div className="min-w-0 flex-1">
           <div className="text-[13.5px] font-medium truncate">{t.title}</div>
           <div className="text-[11.5px] text-slate-500">
-            {t.kind} · {t.sub_id ? `Submitted ${fmtDate(t.submitted_at)}` : relDue(t.due_at)}
+            {t.sub_id ? `Submitted ${fmtDate(t.submitted_at)}` : t.kind}
           </div>
         </div>
         {t.sub_status === "returned"
-          ? <span className="text-[13px] font-semibold text-brand-700">{Number(t.mark)}/{Number(t.max_mark)}</span>
-          : <Badge tone={st.tone}>{st.label}</Badge>}
+          ? <span className="text-[14px] font-bold text-ink num">{Number(t.mark)}<span className="text-slate-400 font-normal text-[12px]">/{Number(t.max_mark)}</span></span>
+          : t.sub_id ? <Badge tone={st.tone}>{st.label}</Badge> : <DueChip due={t.due_at} />}
         <ChevronRight size={15} className="text-slate-300" />
       </Link>
     );

@@ -8,13 +8,13 @@ export function LoginForm({ hasUsername }: { hasUsername: boolean }) {
   const [state, action, pending] = useActionState(login, null as any);
 
   return (
-    <div className="min-h-dvh grid place-items-center px-5 py-10 bg-gradient-to-b from-brand-700 via-brand-600 to-brand-50">
+    <div className="min-h-dvh grid place-items-center px-5 py-10 graph-teal">
       <div className="w-full max-w-[360px]">
         <div className="text-center text-white mb-6">
           <div className="mx-auto size-12 rounded-2xl bg-white/15 grid place-items-center mb-3 ring-1 ring-white/20">
             <GraduationCap size={24} />
           </div>
-          <h1 className="text-[20px] font-semibold tracking-tight">SIR AIMAN LMS</h1>
+          <h1 className="!text-white text-[24px] font-bold">Sir Aiman LMS</h1>
           <p className="text-[12.5px] text-brand-100 mt-1">Mathematics · Kolej Matrikulasi Kedah</p>
         </div>
 
@@ -64,7 +64,7 @@ export function LoginForm({ hasUsername }: { hasUsername: boolean }) {
             </button>
           </form>
         </div>
-        <p className="text-center text-[11px] text-slate-400 mt-6">Semester 2 · 2026/2027 · <a href="/privacy" className="underline">Privacy</a></p>
+        <p className="text-center text-[11px] text-brand-100 mt-6">Semester 2 · 2026/2027 · <a href="/privacy" className="underline text-brand-100">Privacy</a></p>
       </div>
     </div>
   );

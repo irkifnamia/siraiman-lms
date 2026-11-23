@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@fontsource-variable/plus-jakarta-sans";
 
 @theme {
   --color-brand-50: #effcfa;
@@ -11,14 +12,37 @@
   --color-brand-700: #0f6661;
   --color-brand-800: #11524f;
   --color-brand-900: #134442;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --color-ink: #0f3d3a;       /* headings: deep teal ink */
+  --color-paper: #f5f9f8;     /* cool page background */
+  --color-graph: #d6ebe6;     /* graph-paper rule */
+  --color-marigold: #f2b33d;  /* highlighter accent: due soon, podium */
+  --animate-draw: draw 900ms cubic-bezier(.2,.7,.2,1) both;
+  @keyframes draw { from { stroke-dashoffset: var(--len); } }
 }
 
 html { -webkit-tap-highlight-color: transparent; }
-body { @apply bg-slate-50 text-slate-800 antialiased text-[14px]; }
+body { @apply bg-paper text-slate-800 antialiased text-[14px]; font-feature-settings: "tnum" 0; }
+h1, h2, h3 { color: var(--color-ink); letter-spacing: -0.015em; }
+:focus-visible { outline: 2px solid var(--color-brand-500); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* The one signature: exercise-book graph paper, used on the hero panels and login only. */
+.graph-teal {
+  background-color: var(--color-brand-700);
+  background-image:
+    linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 60px 60px, 60px 60px, 12px 12px, 12px 12px;
+  background-position: -1px -1px;
+}
 
 @layer components {
-  .card { @apply bg-white border border-slate-200/80 rounded-xl; }
+  .card { @apply bg-white border border-slate-200/70 rounded-xl; }
+  .row { @apply transition-colors active:bg-brand-50/60; }
+  .num { font-variant-numeric: tabular-nums; }
   .btn { @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 h-9 text-[13px] font-medium transition-colors disabled:opacity-50 cursor-pointer; }
   .btn-primary { @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 h-9 text-[13px] font-medium transition-colors disabled:opacity-50 cursor-pointer bg-brand-600 text-white hover:bg-brand-700; }
   .btn-ghost { @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 h-9 text-[13px] font-medium transition-colors disabled:opacity-50 cursor-pointer text-slate-600 hover:bg-slate-100; }

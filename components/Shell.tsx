@@ -24,15 +24,16 @@ export function Shell({
   return (
     <div className="min-h-dvh md:flex">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-slate-200 bg-white h-dvh sticky top-0">
+      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-slate-200/70 bg-white h-dvh sticky top-0">
         <Brand sub={role === "admin" ? "Lecturer" : "Student"} />
         <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
           {nav.map((n) => {
             const I = ICONS[n.icon];
             return (
               <Link key={n.href} href={n.href}
-                className={`flex items-center gap-2.5 rounded-lg px-2.5 h-9 text-[13px] ${active(n.href) ? "bg-brand-50 text-brand-700 font-medium" : "text-slate-600 hover:bg-slate-50"}`}>
-                <I size={16} strokeWidth={1.8} />{n.label}
+                className={`relative flex items-center gap-2.5 rounded-lg px-2.5 h-9 text-[13px] transition-colors ${active(n.href) ? "bg-brand-50 text-brand-800 font-semibold" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}>
+                {active(n.href) && <span className="absolute -left-3 top-2 bottom-2 w-1 rounded-r bg-brand-600" />}
+                <I size={16} strokeWidth={active(n.href) ? 2.2 : 1.8} />{n.label}
               </Link>
             );
           })}
@@ -48,26 +49,32 @@ export function Shell({
       </aside>
 
       {/* Mobile top bar */}
-      <header className="md:hidden sticky top-0 z-20 bg-brand-700 text-white">
-        <div className="flex items-center justify-between px-4 h-12">
-          <div className="flex items-center gap-2 font-semibold text-[14px] tracking-tight">
-            <GraduationCap size={18} /> SIR AIMAN LMS
+      <header className="md:hidden sticky top-0 z-20 bg-paper/90 backdrop-blur border-b border-slate-200/70">
+        <div className="flex items-center justify-between px-4 h-13">
+          <div className="flex items-center gap-2">
+            <div className="size-7 rounded-lg bg-brand-600 text-white grid place-items-center"><GraduationCap size={15} /></div>
+            <span className="font-bold text-[14px] text-ink tracking-tight">Sir Aiman LMS</span>
           </div>
-          <div className="text-[11.5px] text-brand-100 truncate max-w-[45%]">{sub || name}</div>
+          <Link href={role === "admin" ? "/admin/settings" : "/profile"} className="flex items-center gap-2" aria-label="Profile">
+            <span className="text-[11.5px] text-slate-500 truncate max-w-32">{sub}</span>
+            <Avatar name={name} size={30} />
+          </Link>
         </div>
       </header>
 
       <main className="flex-1 min-w-0 px-4 md:px-8 pt-4 md:pt-7 pb-24 md:pb-10 max-w-5xl w-full mx-auto">{children}</main>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 backdrop-blur border-t border-slate-200 pb-safe">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 backdrop-blur border-t border-slate-200/70 pb-safe">
         <div className="grid grid-cols-5">
           {mobile.map((n) => {
             const I = ICONS[n.icon];
             const on = n.label === "More" ? moreActive : active(n.href);
             return (
-              <Link key={n.href} href={n.href} className={`flex flex-col items-center pt-2 pb-1 text-[10.5px] ${on ? "text-brand-600" : "text-slate-400"}`}>
-                <I size={20} strokeWidth={on ? 2.2 : 1.8} />
+              <Link key={n.href} href={n.href} className={`flex flex-col items-center pt-1.5 pb-1 text-[10.5px] ${on ? "text-brand-800 font-semibold" : "text-slate-500"}`}>
+                <span className={`h-7 w-12 grid place-items-center rounded-full transition-colors ${on ? "bg-brand-100" : ""}`}>
+                  <I size={19} strokeWidth={on ? 2.3 : 1.8} />
+                </span>
                 <span className="mt-0.5">{n.label}</span>
               </Link>
             );
@@ -81,9 +88,9 @@ export function Shell({
 export function Brand({ sub }: { sub?: string }) {
   return (
     <div className="flex items-center gap-2.5 px-4 h-16 border-b border-slate-100">
-      <div className="size-8 rounded-lg bg-brand-600 text-white grid place-items-center"><GraduationCap size={17} /></div>
+      <div className="size-8 rounded-lg graph-teal text-white grid place-items-center"><GraduationCap size={17} /></div>
       <div>
-        <div className="text-[13.5px] font-semibold tracking-tight leading-none">SIR AIMAN LMS</div>
+        <div className="text-[14px] font-bold text-ink tracking-tight leading-none">Sir Aiman LMS</div>
         {sub && <div className="text-[11px] text-slate-400 mt-1">{sub}</div>}
       </div>
     </div>

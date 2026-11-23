@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronRight, Plus, EyeOff } from "lucide-react";
 import { db } from "@/lib/db";
 import { fmtDate, relDue } from "@/lib/format";
-import { Badge, Empty, PageHeader } from "@/components/ui";
+import { Badge, Empty, KindIcon, PageHeader } from "@/components/ui";
 
 export default async function Assignments() {
   const rows = await db()`
@@ -20,7 +20,8 @@ export default async function Assignments() {
       {rows.length ? (
         <div className="card divide-y divide-slate-100">
           {rows.map((a) => (
-            <Link key={a.id} href={`/admin/assignments/${a.id}`} className="flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50">
+            <Link key={a.id} href={`/admin/assignments/${a.id}`} className="row flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50">
+              <KindIcon kind={a.kind} size={34} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 text-[13.5px] font-medium">
                   {!a.published && <EyeOff size={13} className="text-slate-400" />}<span className="truncate">{a.title}</span>

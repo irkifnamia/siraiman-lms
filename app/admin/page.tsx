@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ChevronRight, Plus, Megaphone, BarChart3, ClipboardList, AlertCircle } from "lucide-react";
+import { ChevronRight, Plus, AlertCircle, PenLine } from "lucide-react";
 import { db, currentSemester } from "@/lib/db";
 import { driveConnected } from "@/lib/drive";
 import { fmtDate, relDue, titleCase } from "@/lib/format";
-import { Badge, Empty, PageHeader, Section, Stat } from "@/components/ui";
+import { Badge, DueChip, Empty, KindIcon, Ring, Section, greeting } from "@/components/ui";
+import { adminProfile } from "@/lib/auth";
 
 export default async function AdminHome() {
   const sql = db();
@@ -12,6 +13,7 @@ export default async function AdminHome() {
       (SELECT count(*) FROM students WHERE active)::int AS students,
       (SELECT count(*) FROM assignments WHERE published)::int AS tasks,
       (SELECT count(*) FROM submissions WHERE status='submitted')::int AS to_mark,
+      (SELECT count(*) FROM submissions WHERE status='returned')::int AS returned,
       (SELECT round(avg(100.0*s.mark/a.max_mark)) FROM submissions s JOIN assignments a ON a.id=s.assignment_id WHERE s.mark IS NOT NULL)::int AS avg`,
     sql`SELECT s.class_code, count(*)::int n,
           count(*) FILTER (WHERE system='SDS')::int sds, count(*) FILTER (WHERE system='SES')::int ses
@@ -21,18 +23,45 @@ export default async function AdminHome() {
     sql`SELECT s.submitted_at, st.nickname, st.class_code, a.title, a.id FROM submissions s
         JOIN students st ON st.id=s.student_id JOIN assignments a ON a.id=s.assignment_id
         WHERE s.file_url IS NOT NULL ORDER BY s.submitted_at DESC LIMIT 6`,
-    sql`SELECT a.*, (SELECT count(*) FROM submissions WHERE assignment_id=a.id)::int subs,
+    sql`SELECT a.*, (SELECT count(*) FROM submissions WHERE assignment_id=a.id AND file_url IS NOT NULL)::int subs,
           (SELECT count(*) FROM students WHERE active AND (a.class_code IS NULL OR class_code=a.class_code))::int total
         FROM assignments a WHERE published AND due_at > now() ORDER BY due_at LIMIT 4`,
     currentSemester(),
     driveConnected(),
   ]);
+  const prof = await adminProfile();
   const c = counts[0];
 
   return (
     <>
-      <PageHeader title="Dashboard" sub={sem}
-        action={<Link href="/admin/assignments/new" className="btn-primary"><Plus size={15} /> New task</Link>} />
+      {/* Hero: the one bold element */}
+      <section className="graph-teal rounded-2xl text-white p-5 md:p-6 mb-5 shadow-[0_8px_24px_-12px_rgba(15,61,58,.6)]">
+        <div className="flex items-start gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-[12px] text-brand-100">{new Date().toLocaleDateString("en-MY", { timeZone: "Asia/Kuala_Lumpur", weekday: "long", day: "numeric", month: "long" })}</p>
+            <h1 className="!text-white text-[22px] md:text-[26px] font-bold leading-tight mt-0.5">{greeting()}, {prof.name}</h1>
+          </div>
+          <Ring value={c.returned + c.to_mark ? Math.round((c.returned / (c.returned + c.to_mark)) * 100) : null} size={68}
+            label={<span className="text-[10px] leading-tight text-brand-100"><b className="block text-white text-[15px] num">{c.to_mark}</b>to mark</span>} />
+        </div>
+        <div className="grid grid-cols-4 gap-2 mt-4">
+          {[[c.students, "students", "/admin/students"], [c.tasks, "tasks", "/admin/assignments"], [c.returned, "returned", "/admin/assignments"], [c.avg === null ? "—" : `${c.avg}%`, "average", "/admin/analysis"]].map(([v, l, h]) => (
+            <Link key={l as string} href={h as string} className="rounded-xl bg-white/10 hover:bg-white/15 px-2.5 py-2 transition-colors">
+              <div className="text-[17px] font-bold num">{v}</div>
+              <div className="text-[11px] text-brand-100">{l}</div>
+            </Link>
+          ))}
+        </div>
+        <div className="flex gap-2 mt-4">
+          {toMark[0] ? (
+            <Link href={`/admin/assignments/${toMark[0].id}?f=tomark`} className="flex-1 min-w-0 flex items-center gap-2 rounded-xl bg-white text-ink px-3.5 h-11 text-[13px] font-semibold active:scale-[.99] transition-transform">
+              <PenLine size={16} className="text-brand-600 shrink-0" /><span className="truncate">Mark {toMark[0].title}</span>
+              <span className="ml-auto chip bg-marigold/25 text-amber-800 num shrink-0">{toMark[0].n} new</span>
+            </Link>
+          ) : <div className="flex-1 rounded-xl bg-white/10 px-3.5 h-11 grid items-center text-[12.5px] text-brand-100">All submissions are marked.</div>}
+          <Link href="/admin/assignments/new" className="rounded-xl bg-white/15 hover:bg-white/20 px-3.5 h-11 inline-flex items-center gap-1.5 text-[13px] font-semibold shrink-0"><Plus size={16} /> Task</Link>
+        </div>
+      </section>
 
       {!drive && (
         <Link href="/admin/settings" className="flex items-center gap-2.5 rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2.5 mb-4 text-[12.5px] text-amber-800">
@@ -40,19 +69,12 @@ export default async function AdminHome() {
         </Link>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-6">
-        <Stat label="Students" value={c.students} hint={`${classes.length} classes`} href="/admin/students" />
-        <Stat label="Tasks" value={c.tasks} href="/admin/assignments" />
-        <Stat label="To mark" value={c.to_mark} href="/admin/assignments" />
-        <Stat label="Average" value={c.avg === null ? "—" : `${c.avg}%`} hint="all marked work" href="/admin/analysis" />
-      </div>
-
       <div className="grid md:grid-cols-2 gap-x-5">
         <Section title="Classes">
           <div className="card divide-y divide-slate-100">
             {classes.map((k) => (
-              <Link key={k.class_code} href={`/admin/students?class=${k.class_code}`} className="flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50">
-                <div className="size-9 rounded-lg bg-brand-50 text-brand-700 grid place-items-center text-[11px] font-semibold">{k.class_code}</div>
+              <Link key={k.class_code} href={`/admin/students?class=${k.class_code}`} className="row flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50">
+                <div className="h-9 px-2 rounded-lg bg-brand-50 text-brand-800 grid place-items-center text-[12px] font-bold">{k.class_code}</div>
                 <div className="flex-1">
                   <div className="text-[13.5px] font-medium">{k.n} students</div>
                   <div className="text-[11.5px] text-slate-500">SDS {k.sds} · SES {k.ses}</div>
@@ -67,7 +89,7 @@ export default async function AdminHome() {
           {toMark.length ? (
             <div className="card divide-y divide-slate-100">
               {toMark.map((t) => (
-                <Link key={t.id} href={`/admin/assignments/${t.id}`} className="flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50">
+                <Link key={t.id} href={`/admin/assignments/${t.id}`} className="row flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50">
                   <div className="min-w-0 flex-1"><div className="text-[13.5px] font-medium truncate">{t.title}</div><div className="text-[11.5px] text-slate-500">{t.class_code || "All classes"}</div></div>
                   <Badge tone="amber">{t.n} new</Badge>
                 </Link>
@@ -80,15 +102,18 @@ export default async function AdminHome() {
           {upcoming.length ? (
             <div className="card divide-y divide-slate-100">
               {upcoming.map((t) => (
-                <Link key={t.id} href={`/admin/assignments/${t.id}`} className="block px-3.5 py-3 hover:bg-slate-50">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-[13.5px] font-medium truncate">{t.title}</div>
-                    <span className="text-[11.5px] text-slate-500 shrink-0">{relDue(t.due_at)}</span>
+                <Link key={t.id} href={`/admin/assignments/${t.id}`} className="row flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50">
+                  <KindIcon kind={t.kind} size={32} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-[13.5px] font-medium truncate">{t.title}</div>
+                      <DueChip due={t.due_at} />
+                    </div>
+                    <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-full bg-brand-500 rounded-full" style={{ width: `${t.total ? (t.subs / t.total) * 100 : 0}%` }} />
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-1 num">{t.subs} of {t.total} submitted{t.class_code ? ` in ${t.class_code}` : ""}</div>
                   </div>
-                  <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div className="h-full bg-brand-500" style={{ width: `${t.total ? (t.subs / t.total) * 100 : 0}%` }} />
-                  </div>
-                  <div className="text-[11px] text-slate-400 mt-1">{t.subs}/{t.total} submitted · {t.class_code || "All classes"}</div>
                 </Link>
               ))}
             </div>
@@ -112,13 +137,6 @@ export default async function AdminHome() {
         </Section>
       </div>
 
-      <Section title="Quick actions">
-        <div className="grid grid-cols-3 gap-2.5">
-          {[["/admin/announcements", "Announce", Megaphone], ["/admin/analysis", "Analysis", BarChart3], ["/admin/gradebook", "Gradebook", ClipboardList]].map(([h, l, I]: any) => (
-            <Link key={h} href={h} className="card py-3.5 flex flex-col items-center gap-1.5 text-[12px] font-medium hover:border-brand-300"><I size={18} className="text-brand-600" />{l}</Link>
-          ))}
-        </div>
-      </Section>
     </>
   );
 }
