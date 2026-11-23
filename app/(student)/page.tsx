@@ -5,6 +5,8 @@ import { announcementsFor, tasksForStudent } from "@/lib/queries";
 import { requestsForStudent } from "@/lib/info";
 import { currentSemester, db } from "@/lib/db";
 import { QuickLinks } from "@/components/QuickLinks";
+import { nowAndNext, slotsForClass } from "@/lib/timetable";
+import { NextClass } from "@/components/Timetable";
 import { fmtDate, pct, titleCase } from "@/lib/format";
 import { DueChip, Empty, KindIcon, Ring, Section, greeting } from "@/components/ui";
 
@@ -12,6 +14,7 @@ export default async function StudentHome() {
   const s = await requireStudent();
   const [tasks, news, sem, infos, links] = await Promise.all([tasksForStudent(s.sid, s.cls!), announcementsFor(s.cls!, 3), currentSemester(), requestsForStudent(s.sid, s.cls!),
     db()`SELECT id, title, url FROM resources WHERE category = 'Websites' AND (class_code IS NULL OR class_code = ${s.cls}) ORDER BY id`]);
+  const tt = nowAndNext(await slotsForClass(s.cls!));
   const infoTodo = infos.filter((r) => r.open && !r.answered_at);
   const pending = tasks.filter((t) => !t.sub_id);
   const returned = tasks.filter((t) => t.sub_status === "returned");
@@ -53,6 +56,13 @@ export default async function StudentHome() {
           <div className="mt-4 rounded-xl bg-white/10 px-3 py-2.5 text-[12.5px]">Nothing due. Check the learning plan for what's coming next.</div>
         )}
       </section>
+
+      {(tt.current || tt.next) && (
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2"><h2 className="text-[14px] font-semibold">My next class</h2><Link href="/plan" className="text-[12px] text-brand-700 font-medium">Timetable</Link></div>
+          <NextClass now={tt.current} next={tt.next} today={tt.day} />
+        </div>
+      )}
 
       <QuickLinks links={links as any} />
 

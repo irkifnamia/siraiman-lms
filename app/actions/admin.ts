@@ -400,3 +400,24 @@ export async function pasteAssessmentMarks(_: any, fd: FormData) {
   const notes = [unknown.length ? `Not found${a.class_code ? " in " + a.class_code : ""}: ${unknown.join(", ")}` : "", bad.length ? `Skipped: ${bad.slice(0, 5).join(" | ")}` : ""].filter(Boolean).join(". ");
   return { ok: `Imported ${ok.length} mark${ok.length === 1 ? "" : "s"}.${notes ? " " + notes : ""}`, at: Date.now() };
 }
+
+/* ---------- Timetable ---------- */
+export async function saveSlot(_: any, fd: FormData) {
+  await requireAdmin();
+  const id = num(fd, "id");
+  const day = num(fd, "day"), label = str(fd, "label"), kind = str(fd, "kind") || "Tutorial", venue = str(fd, "venue")?.toUpperCase() ?? null;
+  const t = (k: string) => { const v = str(fd, k); if (!v) return null; const [h, m] = v.split(":").map(Number); return h * 60 + m; };
+  const s = t("start"), e = t("end");
+  if (day === null || !label || s === null || e === null) return { error: "Day, class/label, start and end are required." };
+  if (e <= s) return { error: "End time must be after start time." };
+  const classes = fd.getAll("class_codes").map(String).filter(Boolean);
+  if (id) await db()`UPDATE timetable_slots SET day=${day}, start_min=${s}, end_min=${e}, kind=${kind}, label=${label}, class_codes=${classes}, venue=${venue} WHERE id=${id}`;
+  else await db()`INSERT INTO timetable_slots(day, start_min, end_min, kind, label, class_codes, venue) VALUES (${day}, ${s}, ${e}, ${kind}, ${label}, ${classes}, ${venue})`;
+  revalidatePath("/admin/timetable");
+  redirect("/admin/timetable");
+}
+export async function deleteSlot(fd: FormData) {
+  await requireAdmin();
+  await db()`DELETE FROM timetable_slots WHERE id = ${num(fd, "id")}`;
+  revalidatePath("/admin/timetable");
+}

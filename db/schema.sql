@@ -157,3 +157,15 @@ CREATE TABLE IF NOT EXISTS assessment_marks (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (assessment_id, student_id)
 );
+
+-- Weekly teaching timetable (day 0=Sun..6=Sat, minutes from midnight, MYT)
+CREATE TABLE IF NOT EXISTS timetable_slots (
+  id SERIAL PRIMARY KEY,
+  day SMALLINT NOT NULL CHECK (day BETWEEN 0 AND 6),
+  start_min INT NOT NULL,
+  end_min INT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'Tutorial',   -- Tutorial / Lecture / Other
+  label TEXT NOT NULL,                     -- e.g. F3T1, J1 Lecture
+  class_codes TEXT[] NOT NULL DEFAULT '{}',-- app classes that attend (students see these)
+  venue TEXT
+);
