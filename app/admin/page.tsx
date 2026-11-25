@@ -6,8 +6,6 @@ import { fmtDate, relDue, titleCase } from "@/lib/format";
 import { Badge, DueChip, Empty, KindIcon, Ring, Section, greeting } from "@/components/ui";
 import { adminProfile } from "@/lib/auth";
 import { QuickLinks } from "@/components/QuickLinks";
-import { allSlots, nowAndNext, range } from "@/lib/timetable";
-import { NextClass } from "@/components/Timetable";
 
 export default async function AdminHome() {
   const sql = db();
@@ -32,8 +30,7 @@ export default async function AdminHome() {
     currentSemester(),
     driveConnected(),
   ]);
-  const [prof, links, slots] = await Promise.all([adminProfile(), sql`SELECT id, title, url FROM resources WHERE category = 'Websites' ORDER BY id`, allSlots()]);
-  const tt = nowAndNext(slots);
+  const [prof, links] = await Promise.all([adminProfile(), sql`SELECT id, title, url FROM resources WHERE category = 'Websites' ORDER BY id`]);
   const c = counts[0];
 
   return (
@@ -66,21 +63,6 @@ export default async function AdminHome() {
           <Link href="/admin/assignments/new" className="rounded-xl bg-white/15 hover:bg-white/20 px-3.5 h-11 inline-flex items-center gap-1.5 text-[13px] font-semibold shrink-0"><Plus size={16} /> Task</Link>
         </div>
       </section>
-
-      {(() => {
-        const left = tt.today.filter((s) => s.end_min > tt.min);
-        const later = left.filter((s) => s !== tt.current && s !== tt.next);
-        return (
-          <Section title={left.length ? `Today · ${left.length} session${left.length > 1 ? "s" : ""} left` : "Next class"} action={<Link href="/admin/timetable" className="text-[12px] text-brand-700 font-medium">Timetable</Link>}>
-            <NextClass now={tt.current} next={tt.next} today={tt.day} />
-            {later.length > 0 && (
-              <div className="flex gap-1.5 mt-2 overflow-x-auto">
-                {later.map((s) => <span key={s.id} className="chip num shrink-0 bg-white border border-slate-200 text-slate-600">Then {range(s).split(" – ")[0]} · {s.label} · {s.venue}</span>)}
-              </div>
-            )}
-          </Section>
-        );
-      })()}
 
       <QuickLinks links={links as any} />
 
