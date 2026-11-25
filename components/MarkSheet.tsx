@@ -1,4 +1,5 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState, useState } from "react";
 import { ClipboardPaste, Loader2, Save } from "lucide-react";
@@ -7,8 +8,8 @@ import { pasteAssessmentMarks, saveAssessmentMarks } from "@/app/actions/admin";
 type Row = { id: number; nickname: string; matric: string; class_code: string; mark: number | null; grp: string | null; remark: string | null };
 
 export function MarkSheet({ aid, max, group, rows }: { aid: number; max: number; group: boolean; rows: Row[] }) {
-  const [state, action, pending] = useActionState(saveAssessmentMarks, null as any);
-  const [pState, pAction, pPending] = useActionState(pasteAssessmentMarks, null as any);
+  const [state, action, pending] = useActionState(safe(saveAssessmentMarks), null as any);
+  const [pState, pAction, pPending] = useActionState(safe(pasteAssessmentMarks), null as any);
   const [showPaste, setShowPaste] = useState(false);
   const [showRemarks, setShowRemarks] = useState(rows.some((r) => r.remark));
   const next = (e: React.KeyboardEvent<HTMLInputElement>) => {

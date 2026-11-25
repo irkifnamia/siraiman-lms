@@ -1,4 +1,5 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState } from "react";
 import { Loader2 } from "lucide-react";
@@ -6,7 +7,7 @@ import { submitInfo } from "@/app/actions/student";
 import type { Field } from "@/lib/infoTypes";
 
 export function InfoAnswerForm({ id, fields, answers, open }: { id: number; fields: Field[]; answers: Record<string, string> | null; open: boolean }) {
-  const [state, action, pending] = useActionState(submitInfo, null as any);
+  const [state, action, pending] = useActionState(safe(submitInfo), null as any);
   const a = answers || {};
   return (
     <form onSubmit={keep(action)} className="space-y-4">

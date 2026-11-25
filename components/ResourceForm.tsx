@@ -1,10 +1,11 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState, useRef, useEffect } from "react";
 import { saveResource } from "@/app/actions/admin";
 
 export function ResourceForm({ classes, canUpload }: { classes: string[]; canUpload: boolean }) {
-  const [state, action, pending] = useActionState(saveResource, null as any);
+  const [state, action, pending] = useActionState(safe(saveResource), null as any);
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => { if (state?.ok) ref.current?.reset(); }, [state]);
   return (

@@ -1,4 +1,5 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Loader2, Plus, Search, Trash2 } from "lucide-react";
@@ -28,7 +29,7 @@ const TEMPLATES: { name: string; fields: Omit<Field, "id">[] }[] = [
 export function InfoRequestForm({ r, classes, students }: {
   r?: any; classes: string[]; students: { id: number; nickname: string; matric: string; class_code: string }[];
 }) {
-  const [state, action, pending] = useActionState(saveInfoRequest, null as any);
+  const [state, action, pending] = useActionState(safe(saveInfoRequest), null as any);
   const [fields, setFields] = useState<Field[]>(r?.fields?.length ? r.fields : [{ id: uid(), label: "", type: "text", required: true }]);
   const [cls, setCls] = useState<string[]>(r?.target_classes || []);
   const [studs, setStuds] = useState<number[]>(r?.target_students || []);

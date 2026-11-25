@@ -1,4 +1,5 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState } from "react";
 import { saveStudent } from "@/app/actions/admin";
@@ -8,7 +9,7 @@ const F = ({ n, l, d, ...p }: any) => (
 );
 
 export function StudentForm({ s, classes }: { s?: any; classes: string[] }) {
-  const [state, action, pending] = useActionState(saveStudent, null as any);
+  const [state, action, pending] = useActionState(safe(saveStudent), null as any);
   return (
     <form onSubmit={keep(action)} className="space-y-3">
       {s && <input type="hidden" name="id" value={s.id} />}

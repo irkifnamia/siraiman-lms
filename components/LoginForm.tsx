@@ -1,4 +1,5 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState, useState } from "react";
 import { GraduationCap, Loader2 } from "lucide-react";
@@ -6,7 +7,7 @@ import { login } from "@/app/actions/auth";
 
 export function LoginForm({ hasUsername }: { hasUsername: boolean }) {
   const [role, setRole] = useState<"student" | "admin">("student");
-  const [state, action, pending] = useActionState(login, null as any);
+  const [state, action, pending] = useActionState(safe(login), null as any);
 
   return (
     <div className="min-h-dvh grid place-items-center px-5 py-10 graph-teal">

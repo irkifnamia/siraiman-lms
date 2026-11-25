@@ -1,11 +1,12 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState } from "react";
 import { saveAssignment } from "@/app/actions/admin";
 import { toLocalInput } from "@/lib/format";
 
 export function AssignmentForm({ a, classes, canUpload }: { a?: any; classes: string[]; canUpload: boolean }) {
-  const [state, action, pending] = useActionState(saveAssignment, null as any);
+  const [state, action, pending] = useActionState(safe(saveAssignment), null as any);
   const existing = a?.attachment_url ?? "";
   return (
     <form onSubmit={keep(action)} className="space-y-3">

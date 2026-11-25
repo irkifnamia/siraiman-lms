@@ -1,10 +1,11 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState } from "react";
 import { changePin } from "@/app/actions/auth";
 
 export function PinForm() {
-  const [state, action, pending] = useActionState(changePin, null as any);
+  const [state, action, pending] = useActionState(safe(changePin), null as any);
   return (
     <form onSubmit={keep(action)} className="space-y-3">
       <div className="grid grid-cols-2 gap-3">

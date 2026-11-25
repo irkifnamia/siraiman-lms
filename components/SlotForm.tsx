@@ -1,4 +1,5 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { useActionState } from "react";
 import Link from "next/link";
 import { keep } from "@/lib/keepForm";
@@ -8,7 +9,7 @@ const t = (m?: number) => (m == null ? "" : `${String(Math.floor(m / 60)).padSta
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export function SlotForm({ s, classes }: { s?: any; classes: string[] }) {
-  const [state, action, pending] = useActionState(saveSlot, null as any);
+  const [state, action, pending] = useActionState(safe(saveSlot), null as any);
   return (
     <form onSubmit={keep(action)} className="space-y-3" key={s?.id ?? "new"}>
       {s && <input type="hidden" name="id" value={s.id} />}

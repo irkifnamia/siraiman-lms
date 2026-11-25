@@ -1,11 +1,12 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState } from "react";
 import { Loader2, Upload } from "lucide-react";
 import { importStudents } from "@/app/actions/admin";
 
 export function ImportForm() {
-  const [state, action, pending] = useActionState(importStudents, null as any);
+  const [state, action, pending] = useActionState(safe(importStudents), null as any);
   return (
     <form onSubmit={keep(action)} className="space-y-3">
       <p className="text-[12.5px] text-slate-500">

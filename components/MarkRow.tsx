@@ -1,4 +1,5 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState, useState } from "react";
 import Link from "next/link";
@@ -6,7 +7,7 @@ import { Check, ExternalLink, FileCheck2, Loader2, MessageSquare, PenLine, Undo2
 import { markSubmission, unreturn } from "@/app/actions/admin";
 
 export function MarkRow({ aid, max, st, due }: { aid: number; max: number; st: any; due: string | null }) {
-  const [state, action, pending] = useActionState(markSubmission, null as any);
+  const [state, action, pending] = useActionState(safe(markSubmission), null as any);
   const [open, setOpen] = useState(false);
   const returned = st.status === "returned";
   const late = st.submitted_at && st.file_url && due && new Date(st.submitted_at) > new Date(due);

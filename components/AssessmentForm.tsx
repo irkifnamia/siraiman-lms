@@ -1,4 +1,5 @@
 "use client";
+import { safe } from "@/lib/safeAction";
 import { keep } from "@/lib/keepForm";
 import { useActionState } from "react";
 import { Loader2 } from "lucide-react";
@@ -7,7 +8,7 @@ import { saveAssessment } from "@/app/actions/admin";
 export const ASSESSMENT_KINDS = ["Individual assignment", "Group assignment", "Test", "Quiz", "Presentation", "Lab / practical", "Project", "Other"];
 
 export function AssessmentForm({ a, classes }: { a?: any; classes: string[] }) {
-  const [state, action, pending] = useActionState(saveAssessment, null as any);
+  const [state, action, pending] = useActionState(safe(saveAssessment), null as any);
   const d = (v: any) => (v ? new Date(v).toISOString().slice(0, 10) : "");
   return (
     <form onSubmit={keep(action)} className="space-y-3">
